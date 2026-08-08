@@ -33,9 +33,13 @@
 
 ## 📝 開発の裏側（連載記事）
 
-このゲームがAIとの会話だけで作られた一部始終を、連載記事で公開しています。
+このゲームがAIとの会話だけで作られた一部始終を、まちのAI屋さんのブログで連載しています。
 
-**▶ 連載「AIでアプリを簡単に作れる時代」 → https://machino-ai.jp/tetris-puzzle/articles/**
+**▶ 連載「AIでアプリを簡単に作れる時代」**
+
+1. [AIに「テトリスみたいなパズル作って」と頼んだら、その日のうちにスマホゲームが公開された話](https://machino-ai.jp/blog/ai-game-1nichi-koukai/)
+2. [「ピンクにして」「3分モード作って」——AIとアプリを"育てる"という新しい開発](https://machino-ai.jp/blog/ai-to-app-wo-sodateru/)
+3. [費用ほぼゼロ。非エンジニアがAIでアプリを作るための実践メモ](https://machino-ai.jp/blog/ai-app-jissen-memo/)
 
 ## 🛠 技術
 
