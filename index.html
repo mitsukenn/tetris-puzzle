@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a2e">
+<title>テトリスパズル</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
+  }
+  body {
+    font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* ===== ヘッダー（スコア） ===== */
+  #header {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px 4px;
+  }
+  .score-box {
+    text-align: center;
+    flex: 1;
+  }
+  .score-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #8ba3c7;
+    text-transform: uppercase;
+  }
+  .score-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffd966;
+    text-shadow: 0 2px 8px rgba(255, 217, 102, 0.35);
+  }
+  #best-value { color: #7ec8e3; text-shadow: 0 2px 8px rgba(126, 200, 227, 0.35); }
+  #title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #ff6b6b, #ffd966, #6bffb8, #7ec8e3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    flex: 1;
+    text-align: center;
+  }
+
+  /* ===== コンボ表示 ===== */
+  #combo-banner {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ff9f43;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-shadow: 0 2px 10px rgba(255, 159, 67, 0.6);
+  }
+  #combo-banner.show { opacity: 1; animation: pop 0.4s ease; }
+  @keyframes pop {
+    0% { transform: scale(0.6); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  /* ===== 盤面 ===== */
+  #board-wrap {
+    position: relative;
+    margin: 2px auto 0;
+  }
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, var(--cell));
+    grid-template-rows: repeat(8, var(--cell));
+    gap: var(--gap);
+    background: rgba(0, 0, 0, 0.35);
+    padding: var(--gap);
+    border-radius: 12px;
+    box-shadow: inset 0 2px 12px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .cell {
+    width: var(--cell);
+    height: var(--cell);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    position: relative;
+    transition: background 0.12s;
+  }
+  .cell.filled {
+    background: var(--c);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.3);
+  }
+  .cell.preview {
+    background: var(--c);
+    opacity: 0.4;
+  }
+  .cell.will-clear {
+    animation: glow 0.5s ease infinite alternate;
+  }
+  @keyframes glow {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.6); box-shadow: 0 0 12px rgba(255,255,255,0.7); }
+  }
+  .cell.clearing {
+    animation: vanish 0.3s ease forwards;
+  }
+  @keyframes vanish {
+    to { transform: scale(0); opacity: 0; }
+  }
+
+  /* ===== ピーストレイ ===== */
+  #tray {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 14px 8px;
+    min-height: calc(var(--tray-cell) * 4 + 40px);
+  }
+  .piece {
+    display: grid;
+    gap: 2px;
+    cursor: grab;
+    transition: transform 0.15s, opacity 0.2s;
+    touch-action: none;
+  }
+  .piece.dragging { opacity: 0; }
+  .piece.used { visibility: hidden; }
+  .piece.unplaceable { opacity: 0.3; filter: grayscale(0.7); }
+  .piece-cell {
+    width: var(--tray-cell);
+    height: var(--tray-cell);
+    border-radius: 4px;
+  }
+  .piece-cell.on {
+    background: var(--c);
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+
+  /* ===== ドラッグ中のゴースト ===== */
+  #drag-ghost {
+    position: fixed;
+    display: grid;
+    gap: var(--gap);
+    pointer-events: none;
+    z-index: 100;
+    filter: drop-shadow(0 6px 12px rgba(0,0,0,0.5));
+  }
+  #drag-ghost .ghost-cell {
+    width: var(--cell);
+    height: var(--cell);
+    border-radius: 6px;
+  }
+  #drag-ghost .ghost-cell.on {
+    background: var(--c);
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.3);
+  }
+
+  /* ===== スコアポップ ===== */
+  .score-pop {
+    position: fixed;
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffd966;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+    z-index: 200;
+    animation: rise 0.9s ease forwards;
+  }
+  @keyframes rise {
+    0% { opacity: 0; transform: translateY(0) scale(0.7); }
+    20% { opacity: 1; transform: translateY(-10px) scale(1.1); }
+    100% { opacity: 0; transform: translateY(-60px) scale(1); }
+  }
+
+  /* ===== ゲームオーバー ===== */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 25, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    backdrop-filter: blur(4px);
+  }
+  #overlay.show { display: flex; }
+  .overlay-card {
+    background: linear-gradient(160deg, #1f2a4a, #16213e);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 32px 40px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    animation: pop 0.4s ease;
+  }
+  .overlay-card h2 { font-size: 24px; margin-bottom: 12px; color: #ff6b6b; }
+  .overlay-card .final-score { font-size: 40px; font-weight: 700; color: #ffd966; margin-bottom: 4px; }
+  .overlay-card .final-label { font-size: 12px; color: #8ba3c7; margin-bottom: 6px; }
+  .overlay-card .best-note { font-size: 14px; color: #7ec8e3; margin-bottom: 20px; min-height: 20px; }
+  #restart-btn {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+    background: linear-gradient(90deg, #ffd966, #ff9f43);
+    border: none;
+    border-radius: 999px;
+    padding: 12px 36px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255, 159, 67, 0.4);
+    transition: transform 0.1s;
+  }
+  #restart-btn:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+  <div id="header">
+    <div class="score-box">
+      <div class="score-label">スコア</div>
+      <div class="score-value" id="score-value">0</div>
+    </div>
+    <div id="title">🧩 テトリス<br>パズル</div>
+    <div class="score-box">
+      <div class="score-label">ベスト</div>
+      <div class="score-value" id="best-value">0</div>
+    </div>
+  </div>
+
+  <div id="combo-banner"></div>
+
+  <div id="board-wrap">
+    <div id="board"></div>
+  </div>
+
+  <div id="tray"></div>
+
+  <div id="overlay">
+    <div class="overlay-card">
+      <h2>ゲームオーバー</h2>
+      <div class="final-label">今回のスコア</div>
+      <div class="final-score" id="final-score">0</div>
+      <div class="best-note" id="best-note"></div>
+      <button id="restart-btn">もう一度あそぶ</button>
+    </div>
+  </div>
+
+<script>
+(() => {
+  'use strict';
+
+  const SIZE = 8;
+
+  // ===== レイアウト計算（画面幅に合わせてセルサイズを決定） =====
+  function layout() {
+    const vw = Math.min(window.innerWidth, 440);
+    const vh = window.innerHeight;
+    // 盤面は幅の 88% か、高さの 50% に収まるサイズ
+    const bySide = Math.floor((vw * 0.88 - 9 * 4) / 8);
+    const byHeight = Math.floor((vh * 0.5 - 9 * 4) / 8);
+    const cell = Math.max(24, Math.min(bySide, byHeight));
+    document.documentElement.style.setProperty('--cell', cell + 'px');
+    document.documentElement.style.setProperty('--gap', '4px');
+    document.documentElement.style.setProperty('--tray-cell', Math.floor(cell * 0.55) + 'px');
+    return cell;
+  }
+  let CELL = layout();
+  window.addEventListener('resize', () => { CELL = layout(); });
+
+  // ===== ピース定義（テトリミノ中心＋補助ピース） =====
+  // shape: [row, col] の配列
+  const SHAPES = [
+    // --- テトリミノ（4マス）: 出現率高め ---
+    { cells: [[0,0],[0,1],[0,2],[0,3]], color: '#4fc3f7', w: 3 }, // I 横
+    { cells: [[0,0],[1,0],[2,0],[3,0]], color: '#4fc3f7', w: 3 }, // I 縦
+    { cells: [[0,0],[0,1],[1,0],[1,1]], color: '#ffd54f', w: 3 }, // O
+    { cells: [[0,0],[0,1],[0,2],[1,1]], color: '#ba68c8', w: 2 }, // T
+    { cells: [[1,0],[0,1],[1,1],[2,1]], color: '#ba68c8', w: 2 }, // T 右
+    { cells: [[0,1],[1,0],[1,1],[1,2]], color: '#ba68c8', w: 2 }, // T 上
+    { cells: [[0,0],[1,0],[2,0],[1,1]], color: '#ba68c8', w: 2 }, // T 左
+    { cells: [[0,1],[0,2],[1,0],[1,1]], color: '#81c784', w: 2 }, // S
+    { cells: [[0,0],[1,0],[1,1],[2,1]], color: '#81c784', w: 2 }, // S 縦
+    { cells: [[0,0],[0,1],[1,1],[1,2]], color: '#e57373', w: 2 }, // Z
+    { cells: [[0,1],[1,0],[1,1],[2,0]], color: '#e57373', w: 2 }, // Z 縦
+    { cells: [[0,0],[1,0],[2,0],[2,1]], color: '#ffb74d', w: 2 }, // L
+    { cells: [[0,0],[0,1],[0,2],[1,0]], color: '#ffb74d', w: 2 }, // L 回転
+    { cells: [[0,0],[0,1],[1,1],[2,1]], color: '#ffb74d', w: 2 }, // L 回転
+    { cells: [[1,0],[1,1],[1,2],[0,2]], color: '#ffb74d', w: 2 }, // L 回転
+    { cells: [[0,1],[1,1],[2,1],[2,0]], color: '#7986cb', w: 2 }, // J
+    { cells: [[0,0],[1,0],[1,1],[1,2]], color: '#7986cb', w: 2 }, // J 回転
+    { cells: [[0,0],[0,1],[1,0],[2,0]], color: '#7986cb', w: 2 }, // J 回転
+    { cells: [[0,0],[0,1],[0,2],[1,2]], color: '#7986cb', w: 2 }, // J 回転
+    // --- 補助ピース（詰み防止・戦略用） ---
+    { cells: [[0,0]], color: '#f06292', w: 1.2 },                    // 1マス
+    { cells: [[0,0],[0,1]], color: '#4db6ac', w: 1.5 },              // 2マス横
+    { cells: [[0,0],[1,0]], color: '#4db6ac', w: 1.5 },              // 2マス縦
+    { cells: [[0,0],[0,1],[0,2]], color: '#aed581', w: 1.5 },        // 3マス横
+    { cells: [[0,0],[1,0],[2,0]], color: '#aed581', w: 1.5 },        // 3マス縦
+    { cells: [[0,0],[0,1],[1,0]], color: '#ff8a65', w: 1.5 },        // 角3マス
+    { cells: [[0,0],[0,1],[1,1]], color: '#ff8a65', w: 1.5 },        // 角3マス
+    { cells: [[0,0],[1,0],[1,1]], color: '#ff8a65', w: 1.5 },        // 角3マス
+    { cells: [[0,1],[1,0],[1,1]], color: '#ff8a65', w: 1.5 },        // 角3マス
+    { cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], color: '#9575cd', w: 0.7 }, // 3×3
+    { cells: [[0,0],[0,1],[0,2],[0,3],[0,4]], color: '#64b5f6', w: 0.8 }, // 5マス横
+    { cells: [[0,0],[1,0],[2,0],[3,0],[4,0]], color: '#64b5f6', w: 0.8 }, // 5マス縦
+  ];
+  const TOTAL_W = SHAPES.reduce((s, p) => s + p.w, 0);
+
+  function randomShape() {
+    let r = Math.random() * TOTAL_W;
+    for (const s of SHAPES) {
+      r -= s.w;
+      if (r <= 0) return s;
+    }
+    return SHAPES[0];
+  }
+
+  // ===== 状態 =====
+  let grid = [];        // grid[r][c] = null | color
+  let tray = [];        // { shape, el, used }
+  let score = 0;
+  let best = Number(localStorage.getItem('tetris-puzzle-best') || 0);
+  let combo = 0;
+  let gameOver = false;
+
+  const boardEl = document.getElementById('board');
+  const trayEl = document.getElementById('tray');
+  const scoreEl = document.getElementById('score-value');
+  const bestEl = document.getElementById('best-value');
+  const comboEl = document.getElementById('combo-banner');
+  const overlayEl = document.getElementById('overlay');
+
+  const cellEls = [];
+  for (let r = 0; r < SIZE; r++) {
+    cellEls.push([]);
+    for (let c = 0; c < SIZE; c++) {
+      const el = document.createElement('div');
+      el.className = 'cell';
+      boardEl.appendChild(el);
+      cellEls[r].push(el);
+    }
+  }
+
+  function resetGrid() {
+    grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+  }
+
+  function renderBoard(previewCells = [], previewColor = '', willClear = new Set()) {
+    for (let r = 0; r < SIZE; r++) {
+      for (let c = 0; c < SIZE; c++) {
+        const el = cellEls[r][c];
+        el.className = 'cell';
+        el.style.removeProperty('--c');
+        if (grid[r][c]) {
+          el.classList.add('filled');
+          el.style.setProperty('--c', grid[r][c]);
+          if (willClear.has(r + ',' + c)) el.classList.add('will-clear');
+        }
+      }
+    }
+    for (const [r, c] of previewCells) {
+      const el = cellEls[r][c];
+      if (!grid[r][c]) {
+        el.classList.add('preview');
+        el.style.setProperty('--c', previewColor);
+      }
+      if (willClear.has(r + ',' + c)) {
+        el.classList.add('preview', 'will-clear');
+        el.style.setProperty('--c', previewColor);
+      }
+    }
+  }
+
+  function updateScore() {
+    scoreEl.textContent = score;
+    if (score > best) {
+      best = score;
+      localStorage.setItem('tetris-puzzle-best', best);
+    }
+    bestEl.textContent = best;
+  }
+
+  // ===== 配置判定 =====
+  function canPlaceAt(shape, br, bc) {
+    for (const [r, c] of shape.cells) {
+      const rr = br + r, cc = bc + c;
+      if (rr < 0 || rr >= SIZE || cc < 0 || cc >= SIZE) return false;
+      if (grid[rr][cc]) return false;
+    }
+    return true;
+  }
+
+  function canPlaceAnywhere(shape) {
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++)
+        if (canPlaceAt(shape, r, c)) return true;
+    return false;
+  }
+
+  // 揃う行・列を求める（追加セル込みで判定）
+  function findClears(extraCells = []) {
+    const temp = grid.map(row => row.slice());
+    for (const [r, c] of extraCells) temp[r][c] = '#fff';
+    const rows = [], cols = [];
+    for (let r = 0; r < SIZE; r++)
+      if (temp[r].every(v => v)) rows.push(r);
+    for (let c = 0; c < SIZE; c++) {
+      let full = true;
+      for (let r = 0; r < SIZE; r++) if (!temp[r][c]) { full = false; break; }
+      if (full) cols.push(c);
+    }
+    return { rows, cols };
+  }
+
+  function clearSet(rows, cols) {
+    const set = new Set();
+    for (const r of rows) for (let c = 0; c < SIZE; c++) set.add(r + ',' + c);
+    for (const c of cols) for (let r = 0; r < SIZE; r++) set.add(r + ',' + c);
+    return set;
+  }
+
+  // ===== ピーストレイ =====
+  function newTray() {
+    trayEl.innerHTML = '';
+    tray = [];
+    for (let i = 0; i < 3; i++) {
+      const shape = randomShape();
+      const el = buildPieceEl(shape);
+      trayEl.appendChild(el);
+      const item = { shape, el, used: false };
+      el.addEventListener('pointerdown', (e) => startDrag(e, item));
+      tray.push(item);
+    }
+  }
+
+  function buildPieceEl(shape) {
+    const rows = Math.max(...shape.cells.map(c => c[0])) + 1;
+    const cols = Math.max(...shape.cells.map(c => c[1])) + 1;
+    const el = document.createElement('div');
+    el.className = 'piece';
+    el.style.gridTemplateRows = `repeat(${rows}, var(--tray-cell))`;
+    el.style.gridTemplateColumns = `repeat(${cols}, var(--tray-cell))`;
+    const on = new Set(shape.cells.map(([r, c]) => r + ',' + c));
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'piece-cell' + (on.has(r + ',' + c) ? ' on' : '');
+        if (on.has(r + ',' + c)) cell.style.setProperty('--c', shape.color);
+        el.appendChild(cell);
+      }
+    }
+    return el;
+  }
+
+  function refreshTrayState() {
+    for (const item of tray) {
+      if (item.used) continue;
+      item.el.classList.toggle('unplaceable', !canPlaceAnywhere(item.shape));
+    }
+  }
+
+  // ===== ドラッグ処理 =====
+  const ghost = document.createElement('div');
+  ghost.id = 'drag-ghost';
+  document.body.appendChild(ghost);
+  ghost.style.display = 'none';
+
+  let drag = null; // { item, offsetRows, offsetCols }
+
+  function startDrag(e, item) {
+    if (gameOver || item.used || drag) return;
+    if (!canPlaceAnywhere(item.shape)) return; // 置けないピースは掴めない
+    e.preventDefault();
+
+    const shape = item.shape;
+    const rows = Math.max(...shape.cells.map(c => c[0])) + 1;
+    const cols = Math.max(...shape.cells.map(c => c[1])) + 1;
+
+    // ゴースト構築（盤面セルサイズで表示）
+    ghost.innerHTML = '';
+    ghost.style.gridTemplateRows = `repeat(${rows}, var(--cell))`;
+    ghost.style.gridTemplateColumns = `repeat(${cols}, var(--cell))`;
+    const on = new Set(shape.cells.map(([r, c]) => r + ',' + c));
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'ghost-cell' + (on.has(r + ',' + c) ? ' on' : '');
+        if (on.has(r + ',' + c)) cell.style.setProperty('--c', shape.color);
+        ghost.appendChild(cell);
+      }
+    }
+    ghost.style.display = 'grid';
+    item.el.classList.add('dragging');
+
+    drag = { item, rows, cols, pointerId: e.pointerId };
+    moveDrag(e);
+
+    document.addEventListener('pointermove', moveDrag);
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', cancelDrag);
+  }
+
+  // 指の少し上にピースを表示（指で隠れないように）
+  const LIFT = 70;
+
+  function ghostPosition(e) {
+    const gapPx = 4;
+    const w = drag.cols * CELL + (drag.cols - 1) * gapPx;
+    const h = drag.rows * CELL + (drag.rows - 1) * gapPx;
+    return { x: e.clientX - w / 2, y: e.clientY - h - LIFT + h / 2 };
+  }
+
+  function boardTarget(e) {
+    const rect = boardEl.getBoundingClientRect();
+    const pos = ghostPosition(e);
+    const gapPx = 4;
+    // ゴーストの左上セル中心が乗っている盤面セルを求める
+    const gx = pos.x + CELL / 2 - rect.left - gapPx;
+    const gy = pos.y + CELL / 2 - rect.top - gapPx;
+    const c = Math.round(gx / (CELL + gapPx) - 0.5);
+    const r = Math.round(gy / (CELL + gapPx) - 0.5);
+    return { r, c };
+  }
+
+  function moveDrag(e) {
+    if (!drag) return;
+    const pos = ghostPosition(e);
+    ghost.style.left = pos.x + 'px';
+    ghost.style.top = pos.y + 'px';
+
+    const { r, c } = boardTarget(e);
+    const shape = drag.item.shape;
+    if (canPlaceAt(shape, r, c)) {
+      const cells = shape.cells.map(([sr, sc]) => [r + sr, c + sc]);
+      const { rows, cols } = findClears(cells);
+      renderBoard(cells, shape.color, clearSet(rows, cols));
+      drag.target = { r, c };
+    } else {
+      renderBoard();
+      drag.target = null;
+    }
+  }
+
+  function endDrag(e) {
+    if (!drag) return;
+    const d = drag;
+    cleanupDrag();
+    if (d.target) {
+      placePiece(d.item, d.target.r, d.target.c, e);
+    } else {
+      renderBoard();
+    }
+  }
+
+  function cancelDrag() {
+    if (!drag) return;
+    cleanupDrag();
+    renderBoard();
+  }
+
+  function cleanupDrag() {
+    document.removeEventListener('pointermove', moveDrag);
+    document.removeEventListener('pointerup', endDrag);
+    document.removeEventListener('pointercancel', cancelDrag);
+    ghost.style.display = 'none';
+    if (drag) drag.item.el.classList.remove('dragging');
+    drag = null;
+  }
+
+  // ===== 配置と消去 =====
+  function placePiece(item, br, bc, e) {
+    const shape = item.shape;
+    const placed = shape.cells.map(([r, c]) => [br + r, bc + c]);
+    for (const [r, c] of placed) grid[r][c] = shape.color;
+
+    item.used = true;
+    item.el.classList.add('used');
+
+    let gained = placed.length; // 1マス = 1点
+
+    const { rows, cols } = findClears();
+    const lines = rows.length + cols.length;
+
+    if (lines > 0) {
+      combo++;
+      const lineScore = lines * 10 * SIZE;      // 1ライン = 80点
+      const comboBonus = (combo - 1) * 20;       // コンボボーナス
+      gained += lineScore * (1 + (lines - 1) * 0.5) + comboBonus;
+      gained = Math.round(gained);
+      showCombo(lines, combo);
+      animateClear(rows, cols);
+    } else {
+      combo = 0;
+      renderBoard();
+    }
+
+    score += gained;
+    updateScore();
+    if (e) showScorePop(gained, e.clientX, e.clientY - 80);
+
+    // 3つ使い切ったら補充
+    if (tray.every(t => t.used)) {
+      newTray();
+    }
+    refreshTrayState();
+    checkGameOver();
+  }
+
+  function animateClear(rows, cols) {
+    const set = clearSet(rows, cols);
+    renderBoard();
+    for (const key of set) {
+      const [r, c] = key.split(',').map(Number);
+      cellEls[r][c].classList.add('clearing');
+    }
+    setTimeout(() => {
+      for (const key of set) {
+        const [r, c] = key.split(',').map(Number);
+        grid[r][c] = null;
+      }
+      renderBoard();
+      refreshTrayState();
+      checkGameOver();
+    }, 300);
+  }
+
+  function showCombo(lines, comboCount) {
+    let text = lines >= 2 ? `${lines}ライン同時消し！` : 'ライン消し！';
+    if (comboCount >= 2) text += ` 🔥${comboCount}コンボ`;
+    comboEl.textContent = text;
+    comboEl.classList.remove('show');
+    void comboEl.offsetWidth;
+    comboEl.classList.add('show');
+    clearTimeout(showCombo._t);
+    showCombo._t = setTimeout(() => comboEl.classList.remove('show'), 1500);
+  }
+
+  function showScorePop(points, x, y) {
+    const el = document.createElement('div');
+    el.className = 'score-pop';
+    el.textContent = '+' + points;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+
+  // ===== ゲームオーバー =====
+  function checkGameOver() {
+    const remaining = tray.filter(t => !t.used);
+    if (remaining.length === 0) return;
+    const anyFits = remaining.some(t => canPlaceAnywhere(t.shape));
+    if (!anyFits) {
+      gameOver = true;
+      setTimeout(showGameOver, 500);
+    }
+  }
+
+  function showGameOver() {
+    document.getElementById('final-score').textContent = score;
+    const note = document.getElementById('best-note');
+    note.textContent = score >= best && score > 0 ? '🎉 ベストスコア更新！' : `ベスト: ${best}`;
+    overlayEl.classList.add('show');
+  }
+
+  document.getElementById('restart-btn').addEventListener('click', restart);
+
+  function restart() {
+    overlayEl.classList.remove('show');
+    score = 0;
+    combo = 0;
+    gameOver = false;
+    resetGrid();
+    renderBoard();
+    updateScore();
+    newTray();
+    refreshTrayState();
+  }
+
+  // ===== 開始 =====
+  restart();
+})();
+</script>
+</body>
+</html>
