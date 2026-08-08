@@ -266,13 +266,18 @@
 
   /* ===== ホームボタン ===== */
   #home-btn {
-    font-size: 18px;
     background: rgba(255, 255, 255, 0.7);
     border: 1px solid rgba(122, 161, 209, 0.3);
     border-radius: 12px;
-    padding: 6px 10px;
+    padding: 5px 7px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(122, 161, 209, 0.2);
+    line-height: 0;
+  }
+  #home-btn img {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
   }
   #home-btn:active { transform: scale(0.92); }
 
@@ -378,12 +383,26 @@
     background: rgba(255, 255, 255, 0.78);
     border: 1px solid rgba(94, 179, 228, 0.4);
     border-radius: 999px;
-    padding: 10px 28px;
+    padding: 8px 26px;
     margin-top: 4px;
     cursor: pointer;
     box-shadow: 0 2px 10px rgba(122, 161, 209, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #stats-btn img {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
   }
   #stats-btn:active { transform: scale(0.95); }
+  .stats-title-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    vertical-align: -5px;
+  }
   .mode-icon-img {
     width: 46px;
     height: 46px;
@@ -539,7 +558,7 @@
 </head>
 <body>
   <div id="header">
-    <button id="home-btn" aria-label="モード選択にもどる">🏠</button>
+    <button id="home-btn" aria-label="モード選択にもどる"><img src="icon-home.webp" alt="ホーム"></button>
     <div class="score-box">
       <div class="score-label">スコア</div>
       <div class="score-value" id="score-value">0</div>
@@ -593,13 +612,13 @@
     <h1>🧩 テトリスパズル</h1>
     <div class="menu-sub">モードをえらんでスタート</div>
     <div id="mode-list"></div>
-    <button id="stats-btn">📊 スコア記録</button>
+    <button id="stats-btn"><img src="icon-stats.webp" alt=""> スコア記録</button>
     <button id="resume-btn" style="display:none">▶ ゲームにもどる</button>
   </div>
 
   <div id="stats" class="hidden">
     <div class="stats-card">
-      <h2>📊 スコア記録</h2>
+      <h2><img class="stats-title-icon" src="icon-stats.webp" alt=""> スコア記録</h2>
       <div class="stats-sub">過去7日間の1日ごとのベストスコア</div>
       <div class="chart-chips">
         <button class="chart-chip active" data-f="all">すべて</button>
@@ -676,28 +695,28 @@
   // ===== モード定義 =====
   const MODES = {
     normal: {
-      name: '通常', icon: '🧩', img: 'mode-normal.png', titleHtml: '🧩 テトリス<br>パズル',
+      name: '通常', icon: '🧩', img: 'mode-normal.webp', titleHtml: '🧩 テトリス<br>パズル',
       desc: 'じっくりハイスコアを狙おう',
       clearTarget: 1000, timeLimit: 0, obstacles: 0,
       weights: { tetro: 1, small: 1, big: 1 },
       unlock: null,
     },
     timeattack: {
-      name: 'タイムアタック', icon: '⏱️', img: 'mode-timeattack.png', titleHtml: '⏱️ タイム<br>アタック',
+      name: 'タイムアタック', icon: '⏱️', img: 'mode-timeattack.webp', titleHtml: '⏱️ タイム<br>アタック',
       desc: '3分間でどこまで稼げる？',
       clearTarget: 600, timeLimit: 180, obstacles: 0,
       weights: { tetro: 1, small: 1, big: 1 },
       unlock: { mode: 'normal', count: 3 },
     },
     hard: {
-      name: 'ハード', icon: '🔥', img: 'mode-hard.png', titleHtml: '🔥 ハード<br>モード',
+      name: 'ハード', icon: '🔥', img: 'mode-hard.webp', titleHtml: '🔥 ハード<br>モード',
       desc: '小さいピースが出にくい',
       clearTarget: 1000, timeLimit: 0, obstacles: 0,
       weights: { tetro: 1, small: 0.35, big: 1.4 },
       unlock: { mode: 'normal', count: 5 },
     },
     veryhard: {
-      name: 'ベリーハード', icon: '💀', img: 'mode-veryhard.png', titleHtml: '💀 ベリー<br>ハード',
+      name: 'ベリーハード', icon: '💀', img: 'mode-veryhard.webp', titleHtml: '💀 ベリー<br>ハード',
       desc: '大型ピース＋お邪魔ブロック',
       clearTarget: 1000, timeLimit: 0, obstacles: 10,
       weights: { tetro: 1, small: 0, big: 1.8 },
@@ -1349,12 +1368,13 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '1.3';
+const APP_VERSION = '1.4';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
   '1.2': ['タイムアタック（3分）・ハード・ベリーハードの新モード追加', 'クリア回数で新モードが解放されるように'],
   '1.3': ['📊 過去7日間の日別ベストスコアグラフを追加', 'モードアイコンを一新', 'モード解放条件を調整（3回／5回／10回）'],
+  '1.4': ['ホーム・スコア記録ボタンもかわいいアイコン画像に', '画像をWebP化して軽量化'],
 };
 
 // リロード後にリリースノートを表示
