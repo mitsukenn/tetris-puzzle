@@ -4,7 +4,7 @@
 
 ## 🎮 あそびかた
 
-**▶ プレイはこちら → https://mitsukenn.github.io/tetris-puzzle/**
+**▶ プレイはこちら → https://machino-ai.jp/tetris-puzzle/**
 
 - 下のトレイからブロックをドラッグして盤面に置きます
 - 縦1列・横1列が揃うと、その列が消えて得点になります
