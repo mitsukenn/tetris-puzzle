@@ -1,10 +1,14 @@
-const CACHE_NAME = 'tetris-puzzle-v3';
+const CACHE_NAME = 'tetris-puzzle-v4';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './mode-normal.png',
+  './mode-timeattack.png',
+  './mode-hard.png',
+  './mode-veryhard.png'
 ];
 
 self.addEventListener('install', (event) => {
