@@ -238,6 +238,139 @@
     transition: transform 0.1s;
   }
   #restart-btn:active { transform: scale(0.95); }
+  .overlay-btns { display: flex; gap: 10px; justify-content: center; }
+  #menu-btn {
+    font-size: 15px;
+    font-weight: 700;
+    color: #5eb3e4;
+    background: #fff;
+    border: 1px solid rgba(94, 179, 228, 0.5);
+    border-radius: 999px;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  #menu-btn:active { transform: scale(0.95); }
+  .overlay-card .mode-line { font-size: 13px; color: #96a8c8; margin-bottom: 8px; }
+  .clear-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #f7a8c4, #8ecdf0);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 4px 14px;
+    margin-bottom: 10px;
+  }
+  .unlock-note { font-size: 13px; color: #f2749f; margin-bottom: 14px; }
+
+  /* ===== ホームボタン ===== */
+  #home-btn {
+    font-size: 18px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(122, 161, 209, 0.3);
+    border-radius: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(122, 161, 209, 0.2);
+  }
+  #home-btn:active { transform: scale(0.92); }
+
+  /* ===== タイマー表示 ===== */
+  #title.timer-mode {
+    background: none;
+    -webkit-text-fill-color: #5a6a85;
+    font-size: 24px;
+  }
+  #title.urgent {
+    -webkit-text-fill-color: #e05575;
+    animation: pulseTimer 1s ease infinite;
+  }
+  @keyframes pulseTimer {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* ===== トースト ===== */
+  #toast {
+    position: fixed;
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.92);
+    color: #f2749f;
+    font-size: 19px;
+    font-weight: 700;
+    padding: 12px 26px;
+    border-radius: 999px;
+    box-shadow: 0 6px 24px rgba(122, 161, 209, 0.4);
+    z-index: 250;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; animation: pop 0.4s ease; }
+
+  /* ===== モード選択画面 ===== */
+  #menu {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(160deg, #cdeafd 0%, #e6f1fb 45%, #fbd8e8 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 400;
+    overflow-y: auto;
+    padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  #menu.hidden { display: none; }
+  #menu h1 {
+    font-size: 30px;
+    margin: 14px 0 4px;
+    background: linear-gradient(90deg, #f286ac, #f7b267, #6fcf97, #5eb3e4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  #menu .menu-sub { font-size: 12px; color: #96a8c8; margin-bottom: 20px; }
+  #mode-list { width: 100%; max-width: 360px; }
+  .mode-card {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(122, 161, 209, 0.3);
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 4px 14px rgba(122, 161, 209, 0.2);
+    transition: transform 0.1s;
+  }
+  .mode-card:active { transform: scale(0.97); }
+  .mode-card .mode-icon { font-size: 30px; }
+  .mode-card .mode-info { flex: 1; }
+  .mode-card .mode-name { font-size: 16px; font-weight: 700; color: #5a6a85; }
+  .mode-card .mode-desc { font-size: 11px; color: #96a8c8; margin-top: 2px; }
+  .mode-card .mode-stats { font-size: 11px; color: #5eb3e4; margin-top: 4px; }
+  .mode-card.locked { opacity: 0.65; }
+  .mode-card.locked .mode-icon { filter: grayscale(1); }
+  .mode-card.locked .mode-desc { color: #d98aa8; }
+  #resume-btn {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, #f7a8c4, #8ecdf0);
+    border: none;
+    border-radius: 999px;
+    padding: 12px 32px;
+    margin-top: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(242, 134, 172, 0.4);
+  }
+  #resume-btn:active { transform: scale(0.95); }
 
   /* --- 更新通知バナー --- */
   #update-banner {
@@ -299,6 +432,7 @@
 </head>
 <body>
   <div id="header">
+    <button id="home-btn" aria-label="モード選択にもどる">🏠</button>
     <div class="score-box">
       <div class="score-label">スコア</div>
       <div class="score-value" id="score-value">0</div>
@@ -332,12 +466,27 @@
 
   <div id="overlay">
     <div class="overlay-card">
-      <h2>ゲームオーバー</h2>
+      <h2 id="go-title">ゲームオーバー</h2>
+      <div class="mode-line" id="go-mode"></div>
+      <div><span class="clear-badge" id="go-clear" style="display:none">🎉 クリア達成！</span></div>
       <div class="final-label">今回のスコア</div>
       <div class="final-score" id="final-score">0</div>
       <div class="best-note" id="best-note"></div>
-      <button id="restart-btn">もう一度あそぶ</button>
+      <div class="unlock-note" id="unlock-note"></div>
+      <div class="overlay-btns">
+        <button id="restart-btn">もう一度</button>
+        <button id="menu-btn">モード選択</button>
+      </div>
     </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="menu" class="hidden">
+    <h1>🧩 テトリスパズル</h1>
+    <div class="menu-sub">モードをえらんでスタート</div>
+    <div id="mode-list"></div>
+    <button id="resume-btn" style="display:none">▶ ゲームにもどる</button>
   </div>
 
 <script>
@@ -363,60 +512,102 @@
   window.addEventListener('resize', () => { CELL = layout(); });
 
   // ===== ピース定義（テトリミノ中心＋補助ピース） =====
-  // shape: [row, col] の配列
+  // shape: [row, col] の配列 / g: グループ（tetro=4マス, small=1〜3マス, big=大型）
   const SHAPES = [
     // --- テトリミノ（4マス）: 出現率高め ---
-    { cells: [[0,0],[0,1],[0,2],[0,3]], color: '#4fc3f7', w: 3 }, // I 横
-    { cells: [[0,0],[1,0],[2,0],[3,0]], color: '#4fc3f7', w: 3 }, // I 縦
-    { cells: [[0,0],[0,1],[1,0],[1,1]], color: '#ffd54f', w: 3 }, // O
-    { cells: [[0,0],[0,1],[0,2],[1,1]], color: '#ba68c8', w: 2 }, // T
-    { cells: [[1,0],[0,1],[1,1],[2,1]], color: '#ba68c8', w: 2 }, // T 右
-    { cells: [[0,1],[1,0],[1,1],[1,2]], color: '#ba68c8', w: 2 }, // T 上
-    { cells: [[0,0],[1,0],[2,0],[1,1]], color: '#ba68c8', w: 2 }, // T 左
-    { cells: [[0,1],[0,2],[1,0],[1,1]], color: '#81c784', w: 2 }, // S
-    { cells: [[0,0],[1,0],[1,1],[2,1]], color: '#81c784', w: 2 }, // S 縦
-    { cells: [[0,0],[0,1],[1,1],[1,2]], color: '#e57373', w: 2 }, // Z
-    { cells: [[0,1],[1,0],[1,1],[2,0]], color: '#e57373', w: 2 }, // Z 縦
-    { cells: [[0,0],[1,0],[2,0],[2,1]], color: '#ffb74d', w: 2 }, // L
-    { cells: [[0,0],[0,1],[0,2],[1,0]], color: '#ffb74d', w: 2 }, // L 回転
-    { cells: [[0,0],[0,1],[1,1],[2,1]], color: '#ffb74d', w: 2 }, // L 回転
-    { cells: [[1,0],[1,1],[1,2],[0,2]], color: '#ffb74d', w: 2 }, // L 回転
-    { cells: [[0,1],[1,1],[2,1],[2,0]], color: '#7986cb', w: 2 }, // J
-    { cells: [[0,0],[1,0],[1,1],[1,2]], color: '#7986cb', w: 2 }, // J 回転
-    { cells: [[0,0],[0,1],[1,0],[2,0]], color: '#7986cb', w: 2 }, // J 回転
-    { cells: [[0,0],[0,1],[0,2],[1,2]], color: '#7986cb', w: 2 }, // J 回転
+    { cells: [[0,0],[0,1],[0,2],[0,3]], color: '#4fc3f7', w: 3, g: 'tetro' }, // I 横
+    { cells: [[0,0],[1,0],[2,0],[3,0]], color: '#4fc3f7', w: 3, g: 'tetro' }, // I 縦
+    { cells: [[0,0],[0,1],[1,0],[1,1]], color: '#ffd54f', w: 3, g: 'tetro' }, // O
+    { cells: [[0,0],[0,1],[0,2],[1,1]], color: '#ba68c8', w: 2, g: 'tetro' }, // T
+    { cells: [[1,0],[0,1],[1,1],[2,1]], color: '#ba68c8', w: 2, g: 'tetro' }, // T 右
+    { cells: [[0,1],[1,0],[1,1],[1,2]], color: '#ba68c8', w: 2, g: 'tetro' }, // T 上
+    { cells: [[0,0],[1,0],[2,0],[1,1]], color: '#ba68c8', w: 2, g: 'tetro' }, // T 左
+    { cells: [[0,1],[0,2],[1,0],[1,1]], color: '#81c784', w: 2, g: 'tetro' }, // S
+    { cells: [[0,0],[1,0],[1,1],[2,1]], color: '#81c784', w: 2, g: 'tetro' }, // S 縦
+    { cells: [[0,0],[0,1],[1,1],[1,2]], color: '#e57373', w: 2, g: 'tetro' }, // Z
+    { cells: [[0,1],[1,0],[1,1],[2,0]], color: '#e57373', w: 2, g: 'tetro' }, // Z 縦
+    { cells: [[0,0],[1,0],[2,0],[2,1]], color: '#ffb74d', w: 2, g: 'tetro' }, // L
+    { cells: [[0,0],[0,1],[0,2],[1,0]], color: '#ffb74d', w: 2, g: 'tetro' }, // L 回転
+    { cells: [[0,0],[0,1],[1,1],[2,1]], color: '#ffb74d', w: 2, g: 'tetro' }, // L 回転
+    { cells: [[1,0],[1,1],[1,2],[0,2]], color: '#ffb74d', w: 2, g: 'tetro' }, // L 回転
+    { cells: [[0,1],[1,1],[2,1],[2,0]], color: '#7986cb', w: 2, g: 'tetro' }, // J
+    { cells: [[0,0],[1,0],[1,1],[1,2]], color: '#7986cb', w: 2, g: 'tetro' }, // J 回転
+    { cells: [[0,0],[0,1],[1,0],[2,0]], color: '#7986cb', w: 2, g: 'tetro' }, // J 回転
+    { cells: [[0,0],[0,1],[0,2],[1,2]], color: '#7986cb', w: 2, g: 'tetro' }, // J 回転
     // --- 補助ピース（詰み防止・戦略用） ---
-    { cells: [[0,0]], color: '#f06292', w: 1.2 },                    // 1マス
-    { cells: [[0,0],[0,1]], color: '#4db6ac', w: 1.5 },              // 2マス横
-    { cells: [[0,0],[1,0]], color: '#4db6ac', w: 1.5 },              // 2マス縦
-    { cells: [[0,0],[0,1],[0,2]], color: '#aed581', w: 1.5 },        // 3マス横
-    { cells: [[0,0],[1,0],[2,0]], color: '#aed581', w: 1.5 },        // 3マス縦
-    { cells: [[0,0],[0,1],[1,0]], color: '#ff8a65', w: 1.5 },        // 角3マス
-    { cells: [[0,0],[0,1],[1,1]], color: '#ff8a65', w: 1.5 },        // 角3マス
-    { cells: [[0,0],[1,0],[1,1]], color: '#ff8a65', w: 1.5 },        // 角3マス
-    { cells: [[0,1],[1,0],[1,1]], color: '#ff8a65', w: 1.5 },        // 角3マス
-    { cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], color: '#9575cd', w: 0.7 }, // 3×3
-    { cells: [[0,0],[0,1],[0,2],[0,3],[0,4]], color: '#64b5f6', w: 0.8 }, // 5マス横
-    { cells: [[0,0],[1,0],[2,0],[3,0],[4,0]], color: '#64b5f6', w: 0.8 }, // 5マス縦
+    { cells: [[0,0]], color: '#f06292', w: 1.2, g: 'small' },                    // 1マス
+    { cells: [[0,0],[0,1]], color: '#4db6ac', w: 1.5, g: 'small' },              // 2マス横
+    { cells: [[0,0],[1,0]], color: '#4db6ac', w: 1.5, g: 'small' },              // 2マス縦
+    { cells: [[0,0],[0,1],[0,2]], color: '#aed581', w: 1.5, g: 'small' },        // 3マス横
+    { cells: [[0,0],[1,0],[2,0]], color: '#aed581', w: 1.5, g: 'small' },        // 3マス縦
+    { cells: [[0,0],[0,1],[1,0]], color: '#ff8a65', w: 1.5, g: 'small' },        // 角3マス
+    { cells: [[0,0],[0,1],[1,1]], color: '#ff8a65', w: 1.5, g: 'small' },        // 角3マス
+    { cells: [[0,0],[1,0],[1,1]], color: '#ff8a65', w: 1.5, g: 'small' },        // 角3マス
+    { cells: [[0,1],[1,0],[1,1]], color: '#ff8a65', w: 1.5, g: 'small' },        // 角3マス
+    { cells: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], color: '#9575cd', w: 0.7, g: 'big' }, // 3×3
+    { cells: [[0,0],[0,1],[0,2],[0,3],[0,4]], color: '#64b5f6', w: 0.8, g: 'big' }, // 5マス横
+    { cells: [[0,0],[1,0],[2,0],[3,0],[4,0]], color: '#64b5f6', w: 0.8, g: 'big' }, // 5マス縦
   ];
-  const TOTAL_W = SHAPES.reduce((s, p) => s + p.w, 0);
+
+  // ===== モード定義 =====
+  const MODES = {
+    normal: {
+      name: '通常', icon: '🧩', titleHtml: '🧩 テトリス<br>パズル',
+      desc: 'じっくりハイスコアを狙おう',
+      clearTarget: 1000, timeLimit: 0, obstacles: 0,
+      weights: { tetro: 1, small: 1, big: 1 },
+      unlock: null,
+    },
+    timeattack: {
+      name: 'タイムアタック', icon: '⏱️', titleHtml: '⏱️ タイム<br>アタック',
+      desc: '3分間でどこまで稼げる？',
+      clearTarget: 600, timeLimit: 180, obstacles: 0,
+      weights: { tetro: 1, small: 1, big: 1 },
+      unlock: { mode: 'normal', count: 1 },
+    },
+    hard: {
+      name: 'ハード', icon: '🔥', titleHtml: '🔥 ハード<br>モード',
+      desc: '小さいピースが出にくい',
+      clearTarget: 1000, timeLimit: 0, obstacles: 0,
+      weights: { tetro: 1, small: 0.35, big: 1.4 },
+      unlock: { mode: 'normal', count: 3 },
+    },
+    veryhard: {
+      name: 'ベリーハード', icon: '💀', titleHtml: '💀 ベリー<br>ハード',
+      desc: '大型ピース＋お邪魔ブロック',
+      clearTarget: 1000, timeLimit: 0, obstacles: 10,
+      weights: { tetro: 1, small: 0, big: 1.8 },
+      unlock: { mode: 'hard', count: 3 },
+    },
+  };
 
   function randomShape() {
-    let r = Math.random() * TOTAL_W;
-    for (const s of SHAPES) {
-      r -= s.w;
-      if (r <= 0) return s;
+    const mw = MODES[mode].weights;
+    const pool = SHAPES.map(s => ({ s, w: s.w * (mw[s.g] ?? 1) })).filter(p => p.w > 0);
+    const total = pool.reduce((a, p) => a + p.w, 0);
+    let r = Math.random() * total;
+    for (const p of pool) {
+      r -= p.w;
+      if (r <= 0) return p.s;
     }
-    return SHAPES[0];
+    return pool[0].s;
   }
 
   // ===== 状態 =====
   let grid = [];        // grid[r][c] = null | color
   let tray = [];        // { shape, el, used }
   let score = 0;
-  let best = Number(localStorage.getItem('tetris-puzzle-best') || 0);
   let combo = 0;
   let gameOver = false;
+  let mode = 'normal';
+  let clearAchieved = false;   // このゲームでクリア達成済みか
+  let unlockedMsgs = [];       // このゲームで解放されたモード名
+  let timeLeft = 0;
+  let timerId = null;
+  let remainingMs = 0;   // 一時停止中に保持する残り時間
+  let deadline = 0;      // タイムアタックの期限（エポックms）
+  let paused = false;
+  let gameActive = false;
 
   const boardEl = document.getElementById('board');
   const trayEl = document.getElementById('tray');
@@ -424,6 +615,29 @@
   const bestEl = document.getElementById('best-value');
   const comboEl = document.getElementById('combo-banner');
   const overlayEl = document.getElementById('overlay');
+  const titleEl = document.getElementById('title');
+  const menuEl = document.getElementById('menu');
+  const modeListEl = document.getElementById('mode-list');
+  const resumeBtn = document.getElementById('resume-btn');
+  const toastEl = document.getElementById('toast');
+
+  // ===== モード別成績（クリア回数・ベストスコア） =====
+  const STATS_KEY = 'tp_stats';
+  function loadStats() {
+    let s;
+    try { s = JSON.parse(localStorage.getItem(STATS_KEY)) || {}; } catch (e) { s = {}; }
+    for (const k of Object.keys(MODES)) s[k] = Object.assign({ clears: 0, best: 0 }, s[k]);
+    // 旧バージョンのベストスコアを引き継ぐ
+    const old = Number(localStorage.getItem('tetris-puzzle-best') || 0);
+    if (old > s.normal.best) s.normal.best = old;
+    return s;
+  }
+  const stats = loadStats();
+  function saveStats() { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); }
+  function isUnlocked(k) {
+    const u = MODES[k].unlock;
+    return !u || stats[u.mode].clears >= u.count;
+  }
 
   const cellEls = [];
   for (let r = 0; r < SIZE; r++) {
@@ -468,11 +682,11 @@
 
   function updateScore() {
     scoreEl.textContent = score;
-    if (score > best) {
-      best = score;
-      localStorage.setItem('tetris-puzzle-best', best);
+    if (score > stats[mode].best) {
+      stats[mode].best = score;
+      saveStats();
     }
-    bestEl.textContent = best;
+    bestEl.textContent = stats[mode].best;
   }
 
   // ===== 配置判定 =====
@@ -693,6 +907,12 @@
     updateScore();
     if (e) showScorePop(gained, e.clientX, e.clientY - 80);
 
+    // クリア判定（目標スコア達成・1ゲーム1回）
+    if (!clearAchieved && score >= MODES[mode].clearTarget) {
+      clearAchieved = true;
+      onClearAchieved();
+    }
+
     // 3つ使い切ったら補充
     if (tray.every(t => t.used)) {
       newTray();
@@ -740,8 +960,81 @@
     setTimeout(() => el.remove(), 900);
   }
 
+  // ===== クリア達成・モード解放 =====
+  function showToast(text) {
+    toastEl.textContent = text;
+    toastEl.classList.remove('show');
+    void toastEl.offsetWidth;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove('show'), 1400);
+  }
+
+  function onClearAchieved() {
+    const before = Object.keys(MODES).filter(isUnlocked);
+    stats[mode].clears++;
+    saveStats();
+    showToast('🎉 クリア達成！');
+    const after = Object.keys(MODES).filter(isUnlocked);
+    const news = after.filter(k => !before.includes(k));
+    unlockedMsgs = news.map(k => `${MODES[k].icon} ${MODES[k].name}モード解放！`);
+    unlockedMsgs.forEach((m, i) => setTimeout(() => showToast('🔓 ' + m), 1600 * (i + 1)));
+  }
+
+  // ===== タイマー（タイムアタック） =====
+  function fmtTime(t) {
+    return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+  }
+
+  function updateTitle() {
+    const cfg = MODES[mode];
+    if (cfg.timeLimit) {
+      titleEl.classList.add('timer-mode');
+      titleEl.textContent = '⏱️ ' + fmtTime(timeLeft);
+      titleEl.classList.toggle('urgent', timeLeft <= 30);
+    } else {
+      titleEl.classList.remove('timer-mode', 'urgent');
+      titleEl.innerHTML = cfg.titleHtml;
+    }
+  }
+
+  // 壁時計ベースのタイマー（タブ非表示時のsetInterval間引きの影響を受けない）
+  function startTimer() {
+    stopTimer();
+    if (!MODES[mode].timeLimit) return;
+    deadline = Date.now() + remainingMs;
+    timerId = setInterval(timerTick, 250);
+  }
+
+  function timerTick() {
+    if (gameOver) { stopTimer(); return; }
+    const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    if (left !== timeLeft) {
+      timeLeft = left;
+      updateTitle();
+    }
+    if (left <= 0) {
+      stopTimer();
+      gameOver = true;
+      cancelDrag();
+      showGameOver(true);
+    }
+  }
+
+  function pauseTimer() {
+    if (timerId) {
+      remainingMs = Math.max(0, deadline - Date.now());
+      stopTimer();
+    }
+  }
+
+  function stopTimer() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+  }
+
   // ===== ゲームオーバー =====
   function checkGameOver() {
+    if (gameOver) return;
     const remaining = tray.filter(t => !t.used);
     if (remaining.length === 0) return;
     const anyFits = remaining.some(t => canPlaceAnywhere(t.shape));
@@ -751,37 +1044,119 @@
     }
   }
 
-  function showGameOver() {
+  function showGameOver(isTimeUp = false) {
+    stopTimer();
+    gameActive = false;
+    const cfg = MODES[mode];
+    document.getElementById('go-title').textContent = isTimeUp ? '⏱️ タイムアップ！' : 'ゲームオーバー';
+    document.getElementById('go-mode').textContent = cfg.icon + ' ' + cfg.name + 'モード';
+    document.getElementById('go-clear').style.display = clearAchieved ? '' : 'none';
     document.getElementById('final-score').textContent = score;
     const note = document.getElementById('best-note');
-    note.textContent = score >= best && score > 0 ? '🎉 ベストスコア更新！' : `ベスト: ${best}`;
+    note.textContent = score >= stats[mode].best && score > 0 ? '🎉 ベストスコア更新！' : `ベスト: ${stats[mode].best}`;
+    document.getElementById('unlock-note').textContent = unlockedMsgs.length ? '🔓 ' + unlockedMsgs.join(' ／ ') : '';
     overlayEl.classList.add('show');
   }
 
-  document.getElementById('restart-btn').addEventListener('click', restart);
+  // ===== ゲーム開始・モード選択 =====
+  function addObstacles(n) {
+    let placed = 0, guard = 0;
+    while (placed < n && guard++ < 500) {
+      const r = Math.floor(Math.random() * SIZE);
+      const c = Math.floor(Math.random() * SIZE);
+      if (!grid[r][c]) { grid[r][c] = '#b0bec5'; placed++; }
+    }
+  }
 
-  function restart() {
+  function startGame(k) {
+    mode = k;
+    menuEl.classList.add('hidden');
     overlayEl.classList.remove('show');
     score = 0;
     combo = 0;
     gameOver = false;
+    clearAchieved = false;
+    unlockedMsgs = [];
+    paused = false;
+    gameActive = true;
     resetGrid();
+    addObstacles(MODES[k].obstacles);
     renderBoard();
     updateScore();
+    timeLeft = MODES[k].timeLimit;
+    remainingMs = MODES[k].timeLimit * 1000;
+    updateTitle();
+    startTimer();
     newTray();
     refreshTrayState();
   }
 
+  function renderMenu() {
+    modeListEl.innerHTML = '';
+    for (const k of Object.keys(MODES)) {
+      const cfg = MODES[k];
+      const unlocked = isUnlocked(k);
+      const st = stats[k];
+      const card = document.createElement('div');
+      card.className = 'mode-card' + (unlocked ? '' : ' locked');
+      const desc = unlocked
+        ? cfg.desc
+        : `🔒 ${MODES[cfg.unlock.mode].name}モードを${cfg.unlock.count}回クリアで解放（いま${stats[cfg.unlock.mode].clears}回）`;
+      const statLine = unlocked
+        ? `ベスト ${st.best} ・ クリア ${st.clears}回 ・ 目標 ${cfg.clearTarget}点${cfg.timeLimit ? ' ・ ' + fmtTime(cfg.timeLimit) : ''}`
+        : '';
+      card.innerHTML =
+        `<span class="mode-icon">${cfg.icon}</span>` +
+        `<span class="mode-info">` +
+        `<div class="mode-name">${cfg.name}</div>` +
+        `<div class="mode-desc">${desc}</div>` +
+        (statLine ? `<div class="mode-stats">${statLine}</div>` : '') +
+        `</span>`;
+      card.addEventListener('click', () => {
+        if (unlocked) startGame(k);
+        else showToast(desc);
+      });
+      modeListEl.appendChild(card);
+    }
+  }
+
+  function openMenu() {
+    paused = true;
+    pauseTimer();
+    cancelDrag();
+    renderMenu();
+    resumeBtn.style.display = (gameActive && !gameOver) ? '' : 'none';
+    menuEl.classList.remove('hidden');
+  }
+
+  function closeMenu() {
+    if (!gameActive || gameOver) return;
+    paused = false;
+    menuEl.classList.add('hidden');
+    startTimer();
+  }
+
+  document.getElementById('restart-btn').addEventListener('click', () => startGame(mode));
+  document.getElementById('menu-btn').addEventListener('click', () => {
+    overlayEl.classList.remove('show');
+    openMenu();
+  });
+  document.getElementById('home-btn').addEventListener('click', openMenu);
+  resumeBtn.addEventListener('click', closeMenu);
+
   // ===== 開始 =====
-  restart();
+  resetGrid();
+  renderBoard();
+  openMenu();
 })();
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.2';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
+  '1.2': ['タイムアタック（3分）・ハード・ベリーハードの新モード追加', 'クリア回数で新モードが解放されるように'],
 };
 
 // リロード後にリリースノートを表示

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tetris-puzzle-v2';
+const CACHE_NAME = 'tetris-puzzle-v3';
 const ASSETS = [
   './',
   './index.html',
