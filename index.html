@@ -836,21 +836,21 @@
       desc: '3分間でどこまで稼げる？',
       clearTarget: 600, timeLimit: 180, obstacles: 0,
       weights: { tetro: 1, small: 1, big: 1 },
-      unlock: { mode: 'normal', count: 3 },
+      unlock: { count: 3 },
     },
     hard: {
       name: 'ハード', icon: '🔥', img: 'mode-hard.webp', titleHtml: '🔥 ハード<br>モード',
       desc: '小さいピースが出にくい',
       clearTarget: 1000, timeLimit: 0, obstacles: 0,
       weights: { tetro: 1, small: 0.35, big: 1.4 },
-      unlock: { mode: 'normal', count: 5 },
+      unlock: { count: 5 },
     },
     veryhard: {
       name: 'ベリーハード', icon: '💀', img: 'mode-veryhard.webp', titleHtml: '💀 ベリー<br>ハード',
       desc: '大型ピース＋お邪魔ブロック',
       clearTarget: 1000, timeLimit: 0, obstacles: 10,
       weights: { tetro: 1, small: 0, big: 1.8 },
-      unlock: { mode: 'hard', count: 10 },
+      unlock: { count: 10 },
     },
   };
 
@@ -907,9 +907,14 @@
   }
   const stats = loadStats();
   function saveStats() { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); }
+  // 全モード合計のクリア回数（どのモードで遊んでも解放条件に加算される）
+  function totalClears() {
+    return Object.keys(MODES).reduce((s, k) => s + (stats[k] ? stats[k].clears : 0), 0);
+  }
+
   function isUnlocked(k) {
     const u = MODES[k].unlock;
-    return !u || stats[u.mode].clears >= u.count;
+    return !u || totalClears() >= u.count;
   }
 
   // ===== 日別ベストスコア記録 =====
@@ -1489,7 +1494,7 @@
       card.className = 'mode-card' + (unlocked ? '' : ' locked');
       const desc = unlocked
         ? cfg.desc
-        : `🔒 ${MODES[cfg.unlock.mode].name}モードを${cfg.unlock.count}回クリアで解放（いま${stats[cfg.unlock.mode].clears}回）`;
+        : `🔒 どのモードでも合計${cfg.unlock.count}回クリアで解放（いま${totalClears()}回）`;
       const statLine = unlocked
         ? `ベスト ${st.best} ・ クリア ${st.clears}回 ・ 目標 ${cfg.clearTarget}点${cfg.timeLimit ? ' ・ ' + fmtTime(cfg.timeLimit) : ''}`
         : '';
@@ -1555,7 +1560,7 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '1.6';
+const APP_VERSION = '1.7';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -1564,6 +1569,7 @@ const RELEASE_NOTES = {
   '1.4': ['ホーム・スコア記録ボタンもかわいいアイコン画像に', '画像をWebP化して軽量化'],
   '1.5': ['🔊 効果音を追加（配置・ライン消去・クリア・カウントダウンなど）', '画面上部のスピーカーボタンでオン/オフ切替可能'],
   '1.6': ['✨ 消去音がもっと楽しく！コンボで音がどんどん豪華に', '🎆 連続消し・同時消しでパーティクルが飛び散る派手な演出を追加'],
+  '1.7': ['🔓 モード解放の条件を緩和！どのモードのクリアも合計回数にカウントされるように'],
 };
 
 // リロード後にリリースノートを表示
