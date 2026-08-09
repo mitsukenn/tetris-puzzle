@@ -251,6 +251,40 @@
     transition: transform 0.1s;
   }
   #menu-btn:active { transform: scale(0.95); }
+  #peek-btn {
+    font-size: 13px;
+    font-weight: 700;
+    color: #96a8c8;
+    background: transparent;
+    border: none;
+    text-decoration: underline;
+    padding: 12px 8px 0;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+  }
+  #peek-btn:active { opacity: 0.6; }
+  /* 盤面を見ている間に表示する「結果にもどる」バー */
+  #back-to-result {
+    position: fixed;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: none;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, #f7a8c4, #8ecdf0);
+    border: none;
+    border-radius: 999px;
+    padding: 13px 30px;
+    cursor: pointer;
+    z-index: 310;
+    box-shadow: 0 4px 18px rgba(242, 134, 172, 0.5);
+    animation: pop 0.35s ease;
+  }
+  #back-to-result.show { display: block; }
+  #back-to-result:active { transform: translateX(-50%) scale(0.95); }
   .overlay-card .mode-line { font-size: 13px; color: #96a8c8; margin-bottom: 8px; }
   .clear-badge {
     display: inline-block;
@@ -556,6 +590,131 @@
   }
   #stats-close:active { transform: scale(0.95); }
 
+  /* ===== スコア登録（ゲームオーバー画面内） ===== */
+  #register-box {
+    display: none;
+    background: linear-gradient(135deg, #fff6fa, #f2f8fd);
+    border: 1px dashed rgba(242, 134, 172, 0.55);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  #register-box.show { display: block; }
+  .register-title { font-size: 13px; font-weight: 700; color: #f2749f; margin-bottom: 8px; }
+  #name-input {
+    width: 100%;
+    font-size: 16px; /* iOSの自動ズーム防止 */
+    font-family: inherit;
+    color: #5a6a85;
+    text-align: center;
+    background: #fff;
+    border: 1px solid rgba(122, 161, 209, 0.4);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  #name-input:focus { outline: 2px solid rgba(142, 205, 240, 0.8); }
+  #register-btn {
+    width: 100%;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, #f7a8c4, #8ecdf0);
+    border: none;
+    border-radius: 999px;
+    padding: 11px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(242, 134, 172, 0.35);
+  }
+  #register-btn:active { transform: scale(0.97); }
+  #register-btn:disabled { opacity: 0.5; }
+  .register-note { font-size: 10px; color: #96a8c8; margin-top: 6px; }
+
+  /* ===== ランキング画面 ===== */
+  #ranking {
+    position: fixed;
+    inset: 0;
+    background: rgba(230, 240, 250, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 460;
+    backdrop-filter: blur(5px);
+  }
+  #ranking.hidden { display: none; }
+  .ranking-card {
+    background: linear-gradient(160deg, #ffffff, #f2f7fd);
+    border: 1px solid rgba(122, 161, 209, 0.25);
+    border-radius: 20px;
+    padding: 20px 18px 16px;
+    width: calc(100% - 32px);
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(122, 161, 209, 0.35);
+    animation: pop 0.4s ease;
+  }
+  .ranking-card h2 { font-size: 19px; color: #5a6a85; margin-bottom: 4px; }
+  .ranking-card h2 img { width: 24px; height: 24px; border-radius: 7px; vertical-align: -5px; }
+  #rank-list {
+    max-height: 46vh;
+    overflow-y: auto;
+    margin: 12px 0 14px;
+  }
+  .rank-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(122, 161, 209, 0.2);
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+  .rank-row.mine {
+    background: linear-gradient(90deg, #fff0f6, #eaf6fd);
+    border-color: rgba(242, 134, 172, 0.6);
+    box-shadow: 0 2px 10px rgba(242, 134, 172, 0.25);
+  }
+  .rank-no { font-size: 15px; font-weight: 700; color: #96a8c8; width: 34px; flex-shrink: 0; }
+  .rank-row:nth-child(1) .rank-no { color: #e8a825; }
+  .rank-row:nth-child(2) .rank-no { color: #9bb0c4; }
+  .rank-row:nth-child(3) .rank-no { color: #c98a5b; }
+  .rank-name { flex: 1; font-size: 14px; font-weight: 700; color: #5a6a85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-score { font-size: 15px; font-weight: 700; color: #f286ac; flex-shrink: 0; }
+  .rank-date { font-size: 9px; color: #b6c4d8; flex-shrink: 0; width: 38px; text-align: right; }
+  .rank-empty { font-size: 13px; color: #96a8c8; padding: 26px 0; }
+  #rank-status { font-size: 10px; color: #96a8c8; margin-bottom: 8px; min-height: 13px; }
+  #rank-close {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(90deg, #f7a8c4, #8ecdf0);
+    border: none;
+    border-radius: 999px;
+    padding: 10px 32px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(242, 134, 172, 0.4);
+  }
+  #rank-close:active { transform: scale(0.95); }
+  #ranking-btn {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e8a825;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(232, 168, 37, 0.4);
+    border-radius: 999px;
+    padding: 8px 26px;
+    margin-top: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(122, 161, 209, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #ranking-btn img { width: 24px; height: 24px; border-radius: 7px; }
+  #ranking-btn:active { transform: scale(0.95); }
+
   /* --- 更新通知バナー --- */
   #update-banner {
     display: none;
@@ -658,10 +817,38 @@
       <div class="final-score" id="final-score">0</div>
       <div class="best-note" id="best-note"></div>
       <div class="unlock-note" id="unlock-note"></div>
+
+      <div id="register-box">
+        <div class="register-title" id="register-title">🏆 ランキングに登録できます！</div>
+        <input id="name-input" type="text" maxlength="12" placeholder="なまえ（自由入力）"
+               autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button id="register-btn">この名前で登録する</button>
+        <div class="register-note">ログイン不要・毎回すきな名前で登録できます</div>
+      </div>
+
       <div class="overlay-btns">
         <button id="restart-btn">もう一度</button>
         <button id="menu-btn">モード選択</button>
       </div>
+      <button id="peek-btn">🔍 最後の盤面を見る</button>
+    </div>
+  </div>
+
+  <button id="back-to-result">結果にもどる</button>
+
+  <div id="ranking" class="hidden">
+    <div class="ranking-card">
+      <h2><img src="icon-rank.webp" alt=""> ランキング</h2>
+      <div class="stats-sub">みんなのベストスコア</div>
+      <div class="chart-chips" id="rank-chips">
+        <button class="chart-chip active" data-m="normal">🧩 通常</button>
+        <button class="chart-chip" data-m="timeattack">⏱️ タイム</button>
+        <button class="chart-chip" data-m="hard">🔥 ハード</button>
+        <button class="chart-chip" data-m="veryhard">💀 ベリー</button>
+      </div>
+      <div id="rank-status"></div>
+      <div id="rank-list"></div>
+      <button id="rank-close">とじる</button>
     </div>
   </div>
 
@@ -673,6 +860,7 @@
     <div class="menu-sub">モードをえらんでスタート</div>
     <div id="mode-list"></div>
     <button id="stats-btn"><img src="icon-stats.webp" alt=""> スコア記録</button>
+    <button id="ranking-btn"><img src="icon-rank.webp" alt=""> ランキング</button>
     <button id="resume-btn" style="display:none">▶ ゲームにもどる</button>
   </div>
 
@@ -970,9 +1158,181 @@
         <div class="chart-bar" style="height:${d.val ? Math.max(8, Math.round(d.val / max * 130)) : 4}px"></div>
         <div class="chart-day">${d.label}<br>${d.dow}</div>
       </div>`).join('');
-    document.querySelectorAll('.chart-chip').forEach(ch =>
+    document.querySelectorAll('.chart-chip[data-f]').forEach(ch =>
       ch.classList.toggle('active', ch.dataset.f === chartFilter));
   }
+
+  // ===== ランキング（スコア登録・ログイン不要） =====
+  // オンライン共有ランキングのAPI（Google Apps ScriptのウェブアプリURL）。
+  // 空文字のままなら「この端末だけ」のランキングとして動作する。
+  const RANKING_API = '';
+  const RANK_KEY = 'tp_ranking';
+  const NAME_KEY = 'tp_last_name';
+  const RANK_MAX = 20;
+
+  let rankFilter = 'normal';
+  let myEntryKey = null;   // 直前に登録した自分の行をハイライトする用
+  let prevBest = 0;        // ゲーム開始時点のベスト（自己ベスト更新の判定用）
+
+  const rankingEl = document.getElementById('ranking');
+  const rankListEl = document.getElementById('rank-list');
+  const rankStatusEl = document.getElementById('rank-status');
+  const registerBox = document.getElementById('register-box');
+  const nameInput = document.getElementById('name-input');
+  const registerBtn = document.getElementById('register-btn');
+
+  // 名前は必ずエスケープして表示する（オンライン化した際のXSS対策）
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function loadLocalRank() {
+    try { return JSON.parse(localStorage.getItem(RANK_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function localRankOf(m) {
+    const all = loadLocalRank();
+    return (all[m] || []).slice().sort((a, b) => b.score - a.score).slice(0, RANK_MAX);
+  }
+  function addLocalRank(entry) {
+    const all = loadLocalRank();
+    if (!all[entry.mode]) all[entry.mode] = [];
+    all[entry.mode].push(entry);
+    all[entry.mode].sort((a, b) => b.score - a.score);
+    all[entry.mode] = all[entry.mode].slice(0, RANK_MAX);
+    localStorage.setItem(RANK_KEY, JSON.stringify(all));
+  }
+
+  // 登録できる条件：自己ベスト更新、またはランキング圏内
+  function canRegister() {
+    if (score <= 0) return false;
+    if (score > prevBest) return true;
+    const list = localRankOf(mode);
+    return list.length < RANK_MAX || score > list[list.length - 1].score;
+  }
+
+  async function fetchOnlineRank(m) {
+    const res = await fetch(RANKING_API + '?mode=' + encodeURIComponent(m), { cache: 'no-store' });
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.entries || []);
+  }
+
+  async function postOnlineRank(entry) {
+    // Content-Type を text/plain にすると CORS プリフライトが飛ばない（GAS は OPTIONS に応答できない）
+    await fetch(RANKING_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(entry),
+    });
+  }
+
+  function renderRankList(list, statusText) {
+    rankStatusEl.textContent = statusText || '';
+    if (!list || !list.length) {
+      rankListEl.innerHTML = '<div class="rank-empty">まだ記録がありません。<br>いちばん乗りを目指そう！</div>';
+      return;
+    }
+    rankListEl.innerHTML = list.slice(0, RANK_MAX).map((en, i) => {
+      const medal = ['🥇', '🥈', '🥉'][i] || (i + 1);
+      const mine = myEntryKey && (en.name + '|' + en.score) === myEntryKey ? ' mine' : '';
+      let d = '';
+      if (en.date) {
+        const dt = new Date(en.date);
+        if (!isNaN(dt)) d = (dt.getMonth() + 1) + '/' + dt.getDate();
+      }
+      return `<div class="rank-row${mine}">` +
+        `<span class="rank-no">${medal}</span>` +
+        `<span class="rank-name">${esc(en.name || 'ななし')}</span>` +
+        `<span class="rank-score">${Number(en.score) || 0}</span>` +
+        `<span class="rank-date">${d}</span>` +
+        `</div>`;
+    }).join('');
+  }
+
+  async function openRanking(m) {
+    if (m) rankFilter = m;
+    rankingEl.classList.remove('hidden');
+    document.querySelectorAll('.chart-chip[data-m]').forEach(ch =>
+      ch.classList.toggle('active', ch.dataset.m === rankFilter));
+    // まず端末内の記録をすぐ表示（オンラインは後から上書き）
+    renderRankList(localRankOf(rankFilter),
+      RANKING_API ? '読み込み中…' : 'この端末に保存された記録です');
+    if (!RANKING_API) return;
+    try {
+      const entries = await fetchOnlineRank(rankFilter);
+      renderRankList(entries, 'みんなのランキング');
+    } catch (err) {
+      renderRankList(localRankOf(rankFilter), '⚠️ 通信できないため、この端末の記録を表示中です');
+    }
+  }
+
+  function maybeShowRegister() {
+    if (!canRegister()) {
+      registerBox.classList.remove('show');
+      return;
+    }
+    document.getElementById('register-title').textContent =
+      score > prevBest ? '🏆 自己ベスト更新！ランキングに登録しよう' : '🏆 ランキング圏内！登録できます';
+    nameInput.value = localStorage.getItem(NAME_KEY) || '';
+    registerBtn.disabled = false;
+    registerBtn.textContent = 'この名前で登録する';
+    registerBox.classList.add('show');
+  }
+
+  registerBtn.addEventListener('click', async () => {
+    const name = (nameInput.value || '').trim().slice(0, 12) || 'ななし';
+    localStorage.setItem(NAME_KEY, name);
+    const entry = { name, score, mode, date: new Date().toISOString() };
+    myEntryKey = name + '|' + score;
+    registerBtn.disabled = true;
+    registerBtn.textContent = '登録中…';
+    addLocalRank(entry);
+    if (RANKING_API) {
+      try { await postOnlineRank(entry); } catch (err) { /* 失敗しても端末内には残る */ }
+    }
+    SFX.goal();
+    registerBox.classList.remove('show');
+    overlayEl.classList.remove('show');
+    rankFromResult = true;
+    openRanking(mode);
+  });
+
+  nameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); registerBtn.click(); }
+  });
+
+  let rankFromResult = false;   // 結果画面からランキングを開いたか
+  document.getElementById('ranking-btn').addEventListener('click', () => {
+    SFX.tap();
+    rankFromResult = false;
+    myEntryKey = null;
+    openRanking(mode);
+  });
+  document.getElementById('rank-close').addEventListener('click', () => {
+    rankingEl.classList.add('hidden');
+    myEntryKey = null;
+    // 結果画面から開いていた場合は結果に戻す
+    if (rankFromResult) {
+      rankFromResult = false;
+      overlayEl.classList.add('show');
+    }
+  });
+  document.querySelectorAll('.chart-chip[data-m]').forEach(ch => {
+    ch.addEventListener('click', () => openRanking(ch.dataset.m));
+  });
+
+  // ===== ゲームオーバー後に最後の盤面を確認する =====
+  const backToResultBtn = document.getElementById('back-to-result');
+  document.getElementById('peek-btn').addEventListener('click', () => {
+    SFX.tap();
+    overlayEl.classList.remove('show');
+    backToResultBtn.classList.add('show');
+  });
+  backToResultBtn.addEventListener('click', () => {
+    SFX.tap();
+    backToResultBtn.classList.remove('show');
+    overlayEl.classList.add('show');
+  });
 
   const cellEls = [];
   for (let r = 0; r < SIZE; r++) {
@@ -1263,8 +1623,12 @@
     if (tray.every(t => t.used)) {
       newTray();
     }
-    refreshTrayState();
-    checkGameOver();
+    // ライン消去中は盤面がまだ空いていないので、消去アニメ完了後（animateClear内）に判定する。
+    // ここで判定すると「消えれば置けたはず」なのにゲームオーバーになってしまう。
+    if (lines === 0) {
+      refreshTrayState();
+      checkGameOver();
+    }
   }
 
   // 消去セルからカラフルなパーティクルを飛ばす
@@ -1447,6 +1811,8 @@
     const note = document.getElementById('best-note');
     note.textContent = score >= stats[mode].best && score > 0 ? '🎉 ベストスコア更新！' : `ベスト: ${stats[mode].best}`;
     document.getElementById('unlock-note').textContent = unlockedMsgs.length ? '🔓 ' + unlockedMsgs.join(' ／ ') : '';
+    maybeShowRegister();
+    backToResultBtn.classList.remove('show');
     overlayEl.classList.add('show');
   }
 
@@ -1463,8 +1829,13 @@
   function startGame(k) {
     SFX.tap();
     mode = k;
+    prevBest = stats[k].best;   // このゲームでの自己ベスト更新判定に使う
     menuEl.classList.add('hidden');
     overlayEl.classList.remove('show');
+    rankingEl.classList.add('hidden');
+    registerBox.classList.remove('show');
+    backToResultBtn.classList.remove('show');
+    myEntryKey = null;
     score = 0;
     combo = 0;
     gameOver = false;
@@ -1519,6 +1890,7 @@
     paused = true;
     pauseTimer();
     cancelDrag();
+    backToResultBtn.classList.remove('show');
     renderMenu();
     resumeBtn.style.display = (gameActive && !gameOver) ? '' : 'none';
     menuEl.classList.remove('hidden');
@@ -1545,7 +1917,7 @@
   document.getElementById('stats-close').addEventListener('click', () => {
     document.getElementById('stats').classList.add('hidden');
   });
-  document.querySelectorAll('.chart-chip').forEach(ch => {
+  document.querySelectorAll('.chart-chip[data-f]').forEach(ch => {
     ch.addEventListener('click', () => {
       chartFilter = ch.dataset.f;
       renderChart();
@@ -1556,11 +1928,12 @@
   resetGrid();
   renderBoard();
   openMenu();
+
 })();
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '1.7';
+const APP_VERSION = '1.8';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -1570,6 +1943,11 @@ const RELEASE_NOTES = {
   '1.5': ['🔊 効果音を追加（配置・ライン消去・クリア・カウントダウンなど）', '画面上部のスピーカーボタンでオン/オフ切替可能'],
   '1.6': ['✨ 消去音がもっと楽しく！コンボで音がどんどん豪華に', '🎆 連続消し・同時消しでパーティクルが飛び散る派手な演出を追加'],
   '1.7': ['🔓 モード解放の条件を緩和！どのモードのクリアも合計回数にカウントされるように'],
+  '1.8': [
+    '🏆 スコア登録＆ランキングを追加（ログイン不要・毎回すきな名前でOK）',
+    '🔍 ゲームオーバー後に最後の盤面を確認できるように',
+    '🐛 列が消えて続けられるのにゲームオーバーになる不具合を修正',
+  ],
 };
 
 // リロード後にリリースノートを表示
