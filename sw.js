@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tetris-puzzle-v10';
+const CACHE_NAME = 'tetris-puzzle-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -11,7 +11,10 @@ const ASSETS = [
   './mode-veryhard.webp',
   './icon-home.webp',
   './icon-stats.webp',
-  './icon-rank.webp'
+  './icon-rank.webp',
+  './icon-sound-on.webp',
+  './icon-sound-off.webp',
+  './title-logo.webp'
 ];
 
 self.addEventListener('install', (event) => {

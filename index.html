@@ -315,16 +315,21 @@
   }
   #home-btn:active { transform: scale(0.92); }
   #sound-btn {
-    font-size: 16px;
     background: rgba(255, 255, 255, 0.7);
     border: 1px solid rgba(122, 161, 209, 0.3);
     border-radius: 12px;
-    padding: 7px 8px;
+    padding: 5px 7px;
     margin-left: 6px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(122, 161, 209, 0.2);
+    line-height: 0;
   }
-  #sound-btn.muted { opacity: 0.45; filter: grayscale(1); }
+  #sound-btn img {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+  #sound-btn.muted { opacity: 0.7; }
   #sound-btn:active { transform: scale(0.92); }
 
   /* ===== タイマー表示 ===== */
@@ -422,15 +427,15 @@
     padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
   }
   #menu.hidden { display: none; }
-  #menu h1 {
-    font-size: 30px;
-    margin: 14px 0 4px;
-    background: linear-gradient(90deg, #f286ac, #f7b267, #6fcf97, #5eb3e4);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+  #title-logo {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    margin: 6px auto 0;
+    display: block;
+    mix-blend-mode: multiply;   /* 白背景をパステル背景になじませる */
   }
-  #menu .menu-sub { font-size: 12px; color: #96a8c8; margin-bottom: 20px; }
+  #menu .menu-sub { font-size: 12px; color: #96a8c8; margin: -4px 0 18px; }
   #mode-list { width: 100%; max-width: 360px; }
   .mode-card {
     width: 100%;
@@ -776,7 +781,7 @@
 <body>
   <div id="header">
     <button id="home-btn" aria-label="モード選択にもどる"><img src="icon-home.webp" alt="ホーム"></button>
-    <button id="sound-btn" aria-label="効果音の切り替え">🔊</button>
+    <button id="sound-btn" aria-label="効果音の切り替え"><img id="sound-img" src="icon-sound-on.webp" alt="効果音オン"></button>
     <div class="score-box">
       <div class="score-label">スコア</div>
       <div class="score-value" id="score-value">0</div>
@@ -856,7 +861,7 @@
   <div id="combo-pop"></div>
 
   <div id="menu" class="hidden">
-    <h1>🧩 テトリスパズル</h1>
+    <img id="title-logo" src="title-logo.webp" alt="テトリスパズル">
     <div class="menu-sub">モードをえらんでスタート</div>
     <div id="mode-list"></div>
     <button id="stats-btn"><img src="icon-stats.webp" alt=""> スコア記録</button>
@@ -960,8 +965,10 @@
   };
 
   const soundBtn = document.getElementById('sound-btn');
+  const soundImg = document.getElementById('sound-img');
   function updateSoundBtn() {
-    soundBtn.textContent = soundOn ? '🔊' : '🔇';
+    soundImg.src = soundOn ? 'icon-sound-on.webp' : 'icon-sound-off.webp';
+    soundImg.alt = soundOn ? '効果音オン' : '効果音オフ';
     soundBtn.classList.toggle('muted', !soundOn);
   }
   soundBtn.addEventListener('click', () => {
@@ -1933,7 +1940,7 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '1.9';
+const APP_VERSION = '2.0';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -1949,6 +1956,7 @@ const RELEASE_NOTES = {
     '🐛 列が消えて続けられるのにゲームオーバーになる不具合を修正',
   ],
   '1.9': ['🌐 ランキングが全国のみんなと共通に！ 誰でもスコアを登録できます'],
+  '2.0': ['✨ タイトルロゴとサウンドボタンをオリジナル画像に一新'],
 };
 
 // リロード後にリリースノートを表示
