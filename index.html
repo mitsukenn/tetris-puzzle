@@ -308,6 +308,52 @@
     50% { transform: scale(1.08); }
   }
 
+  /* ===== 消去エフェクト（パーティクル・コンボ演出） ===== */
+  .particle {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--c);
+    pointer-events: none;
+    z-index: 220;
+    animation: particleFly 0.7s ease-out forwards;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+  }
+  @keyframes particleFly {
+    0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0.2) rotate(var(--rot)); opacity: 0; }
+  }
+  #combo-pop {
+    position: fixed;
+    top: 34%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 34px;
+    font-weight: 900;
+    color: #ff7ba3;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 260;
+    opacity: 0;
+    text-shadow: 0 2px 0 #fff, 0 6px 18px rgba(242, 116, 159, 0.55);
+  }
+  #combo-pop.show { animation: comboPop 1s ease forwards; }
+  @keyframes comboPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-6deg); }
+    22% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(3deg); }
+    40% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -75%) scale(1.05); }
+  }
+  .board-shake { animation: boardShake 0.35s ease; }
+  @keyframes boardShake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-5px, 3px); }
+    50% { transform: translate(5px, -3px); }
+    75% { transform: translate(-3px, 2px); }
+  }
+
   /* ===== トースト ===== */
   #toast {
     position: fixed;
@@ -620,6 +666,7 @@
   </div>
 
   <div id="toast"></div>
+  <div id="combo-pop"></div>
 
   <div id="menu" class="hidden">
     <h1>🧩 テトリスパズル</h1>
@@ -703,9 +750,18 @@
     pick()  { tone(500, 0.06, { type: 'triangle', vol: 0.1 }); },
     place() { tone(300, 0.09, { type: 'triangle', vol: 0.25, slide: -80 }); tone(520, 0.06, { vol: 0.12, delay: 0.02 }); },
     clear(lines, comboCount) {
-      const base = 520 + Math.min(comboCount, 6) * 50;
-      const n = Math.min(lines + 1, 4);
-      for (let i = 0; i < n; i++) tone(base * Math.pow(1.26, i), 0.15, { vol: 0.2, delay: i * 0.06 });
+      // コンボが続くほどキーが上がる、明るい駆け上がりアルペジオ
+      const c = Math.min(comboCount, 8);
+      const base = 440 * Math.pow(1.12, c);
+      const steps = [0, 4, 7, 12, 16, 19, 24, 28]; // メジャーコードの積み上げ
+      const n = Math.min(3 + lines + Math.min(c, 3), 8);
+      for (let i = 0; i < n; i++) {
+        const f = base * Math.pow(2, steps[i] / 12);
+        tone(f, 0.13, { type: 'triangle', vol: 0.18, delay: i * 0.045 });
+        tone(f * 2, 0.1, { vol: 0.05, delay: i * 0.045 }); // きらめきレイヤー
+      }
+      tone(base * 4, 0.3, { vol: 0.12, delay: n * 0.045 }); // 最後にキラーン
+      if (lines >= 2) tone(base * 2, 0.35, { vol: 0.14, delay: n * 0.045 + 0.04, slide: 400 }); // 同時消しは上昇スライド追加
     },
     goal()   { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.2, { vol: 0.22, delay: i * 0.1 })); },
     unlock() { [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, 0.16, { vol: 0.2, delay: i * 0.08 })); },
@@ -1174,6 +1230,13 @@
       gained = Math.round(gained);
       SFX.clear(lines, combo);
       showCombo(lines, combo);
+      showComboPop(lines, combo);
+      if (lines >= 2 || combo >= 3) {
+        const bw = document.getElementById('board-wrap');
+        bw.classList.remove('board-shake');
+        void bw.offsetWidth;
+        bw.classList.add('board-shake');
+      }
       animateClear(rows, cols);
     } else {
       combo = 0;
@@ -1199,9 +1262,52 @@
     checkGameOver();
   }
 
+  // 消去セルからカラフルなパーティクルを飛ばす
+  function spawnParticles(set) {
+    let count = 0;
+    for (const key of set) {
+      if (count >= 90) break;
+      const [r, c] = key.split(',').map(Number);
+      const color = grid[r][c];
+      if (!color) continue;
+      const rect = cellEls[r][c].getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      for (let i = 0; i < 3; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.setProperty('--c', color);
+        p.style.left = cx + 'px';
+        p.style.top = cy + 'px';
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 40 + Math.random() * 70;
+        p.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+        p.style.setProperty('--dy', Math.sin(ang) * dist - 30 + 'px');
+        p.style.setProperty('--rot', (Math.random() * 360 - 180) + 'deg');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 750);
+        count++;
+      }
+    }
+  }
+
+  // 画面中央のド派手コンボ表示
+  const comboPopEl = document.getElementById('combo-pop');
+  function showComboPop(lines, comboCount) {
+    let text = '';
+    if (comboCount >= 2) text = `🔥 ${comboCount}コンボ!!`;
+    else if (lines >= 2) text = `✨ ${lines}ライン同時消し!`;
+    if (!text) return;
+    comboPopEl.textContent = text;
+    comboPopEl.classList.remove('show');
+    void comboPopEl.offsetWidth;
+    comboPopEl.classList.add('show');
+  }
+
   function animateClear(rows, cols) {
     const set = clearSet(rows, cols);
     renderBoard();
+    spawnParticles(set);
     for (const key of set) {
       const [r, c] = key.split(',').map(Number);
       cellEls[r][c].classList.add('clearing');
@@ -1449,7 +1555,7 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '1.5';
+const APP_VERSION = '1.6';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -1457,6 +1563,7 @@ const RELEASE_NOTES = {
   '1.3': ['📊 過去7日間の日別ベストスコアグラフを追加', 'モードアイコンを一新', 'モード解放条件を調整（3回／5回／10回）'],
   '1.4': ['ホーム・スコア記録ボタンもかわいいアイコン画像に', '画像をWebP化して軽量化'],
   '1.5': ['🔊 効果音を追加（配置・ライン消去・クリア・カウントダウンなど）', '画面上部のスピーカーボタンでオン/オフ切替可能'],
+  '1.6': ['✨ 消去音がもっと楽しく！コンボで音がどんどん豪華に', '🎆 連続消し・同時消しでパーティクルが飛び散る派手な演出を追加'],
 };
 
 // リロード後にリリースノートを表示
