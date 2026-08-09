@@ -43,7 +43,14 @@
   .score-box {
     text-align: center;
     flex: 1;
+    background: rgba(255, 255, 255, 0.72);
+    border-radius: 14px;
+    padding: 3px 6px;
+    margin: 0 4px;
+    box-shadow: 0 2px 10px rgba(122, 161, 209, 0.22), inset 0 1px 0 rgba(255,255,255,0.9);
   }
+  #score-box-now { border-top: 3px solid #f7a8c4; }
+  #score-box-best { border-top: 3px solid #8ecdf0; }
   .score-label {
     font-size: 11px;
     letter-spacing: 2px;
@@ -89,28 +96,64 @@
     100% { transform: scale(1); }
   }
 
+  /* ===== 背景のふわふわ装飾 ===== */
+  #deco {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .deco-block {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+    background: currentColor;
+    opacity: 0.45;
+    animation: floaty 11s ease-in-out infinite;
+  }
+  /* box-shadow で1つの要素をテトリミノ風の形に見せる */
+  .deco-l { box-shadow: 0 20px 0 currentColor, 20px 20px 0 currentColor; }
+  .deco-o { box-shadow: 20px 0 0 currentColor, 0 20px 0 currentColor, 20px 20px 0 currentColor; }
+  .deco-i { box-shadow: 20px 0 0 currentColor, 40px 0 0 currentColor; }
+  .deco-t { box-shadow: 20px 0 0 currentColor, 40px 0 0 currentColor, 20px 20px 0 currentColor; }
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-16px) rotate(8deg); }
+  }
+
   /* ===== 盤面 ===== */
   #board-wrap {
     position: relative;
-    margin: 2px auto 0;
+    margin: 4px auto 0;
+    padding: 8px;
+    border-radius: 22px;
+    /* 虹色のパステルフレーム */
+    background: linear-gradient(135deg, #ffbcd8 0%, #a8d8f5 28%, #b4ecc9 52%, #ffe19a 76%, #d9bdf7 100%);
+    box-shadow: 0 8px 28px rgba(122, 161, 209, 0.4), inset 0 1px 0 rgba(255,255,255,0.9);
   }
   #board {
     display: grid;
     grid-template-columns: repeat(8, var(--cell));
     grid-template-rows: repeat(8, var(--cell));
     gap: var(--gap);
-    background: rgba(255, 255, 255, 0.55);
+    background:
+      linear-gradient(135deg, rgba(255,188,216,0.45) 0%, rgba(168,216,245,0.45) 30%,
+                              rgba(180,236,201,0.42) 55%, rgba(255,225,154,0.42) 80%,
+                              rgba(217,189,247,0.45) 100%);
     padding: var(--gap);
-    border-radius: 12px;
-    box-shadow: inset 0 2px 8px rgba(122, 161, 209, 0.2), 0 4px 20px rgba(122, 161, 209, 0.25);
+    border-radius: 15px;
+    box-shadow: inset 0 2px 10px rgba(122, 161, 209, 0.22);
   }
   .cell {
     width: var(--cell);
     height: var(--cell);
-    background: rgba(122, 161, 209, 0.14);
+    background: rgba(255, 255, 255, 0.6);
     border-radius: 6px;
     position: relative;
     transition: background 0.12s;
+    box-shadow: inset 0 1px 2px rgba(122, 161, 209, 0.12);
   }
   .cell.filled {
     background: var(--c);
@@ -136,13 +179,19 @@
 
   /* ===== ピーストレイ ===== */
   #tray {
-    width: 100%;
-    max-width: 440px;
+    width: calc(100% - 24px);
+    max-width: 416px;
     display: flex;
     justify-content: space-around;
     align-items: center;
     padding: 14px 8px;
+    margin-top: 12px;
     min-height: calc(var(--tray-cell) * 4 + 40px);
+    /* ピース置き場もカラフルなカードに */
+    background: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(255,255,255,0.45));
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(122, 161, 209, 0.25), inset 0 1px 0 rgba(255,255,255,0.9);
   }
   .piece {
     display: grid;
@@ -822,15 +871,25 @@
 </style>
 </head>
 <body>
+  <!-- 盤面とトレイの下の余白に、テトリミノ風のブロックをふわふわ浮かべる -->
+  <div id="deco" aria-hidden="true">
+    <span class="deco-block deco-l" style="color:#f7a8c4; top:74%; left:8%;   animation-delay:0s"></span>
+    <span class="deco-block deco-o" style="color:#8ecdf0; top:86%; left:30%;  animation-delay:-2.5s"></span>
+    <span class="deco-block deco-i" style="color:#ffd88a; top:79%; left:56%;  animation-delay:-5s"></span>
+    <span class="deco-block deco-t" style="color:#b8e6c8; top:90%; right:12%; animation-delay:-7.5s"></span>
+    <span class="deco-block deco-o" style="color:#d6b8f0; top:70%; right:8%;  animation-delay:-3.5s"></span>
+    <span class="deco-block deco-l" style="color:#ffc4a3; top:95%; left:16%;  animation-delay:-6.5s"></span>
+  </div>
+
   <div id="header">
     <button id="home-btn" aria-label="モード選択にもどる"><img src="icon-home.webp" alt="ホーム"></button>
     <button id="sound-btn" aria-label="効果音の切り替え"><img id="sound-img" src="icon-sound-on.webp" alt="効果音オン"></button>
-    <div class="score-box">
+    <div class="score-box" id="score-box-now">
       <div class="score-label">スコア</div>
       <div class="score-value" id="score-value">0</div>
     </div>
     <div id="title">🧩 テトリス<br>パズル</div>
-    <div class="score-box">
+    <div class="score-box" id="score-box-best">
       <div class="score-label">ベスト</div>
       <div class="score-value" id="best-value">0</div>
     </div>
@@ -1998,7 +2057,7 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.2';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -2016,6 +2075,7 @@ const RELEASE_NOTES = {
   '1.9': ['🌐 ランキングが全国のみんなと共通に！ 誰でもスコアを登録できます'],
   '2.0': ['✨ タイトルロゴとサウンドボタンをオリジナル画像に一新'],
   '2.1': ['🏅 ランキングのメダル、コンボの炎、クリアのクラッカーもオリジナル画像に', 'モード切替タブにもモードのアイコンを表示'],
+  '2.2': ['🌈 パズル画面をカラフルに！盤面に虹色フレーム、スコアもカード表示に', '背景にブロックがふわふわ浮かぶ演出を追加'],
 };
 
 // リロード後にリリースノートを表示
