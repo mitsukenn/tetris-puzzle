@@ -280,6 +280,18 @@
     border-radius: 8px;
   }
   #home-btn:active { transform: scale(0.92); }
+  #sound-btn {
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(122, 161, 209, 0.3);
+    border-radius: 12px;
+    padding: 7px 8px;
+    margin-left: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(122, 161, 209, 0.2);
+  }
+  #sound-btn.muted { opacity: 0.45; filter: grayscale(1); }
+  #sound-btn:active { transform: scale(0.92); }
 
   /* ===== タイマー表示 ===== */
   #title.timer-mode {
@@ -559,6 +571,7 @@
 <body>
   <div id="header">
     <button id="home-btn" aria-label="モード選択にもどる"><img src="icon-home.webp" alt="ホーム"></button>
+    <button id="sound-btn" aria-label="効果音の切り替え">🔊</button>
     <div class="score-box">
       <div class="score-label">スコア</div>
       <div class="score-value" id="score-value">0</div>
@@ -653,6 +666,67 @@
   }
   let CELL = layout();
   window.addEventListener('resize', () => { CELL = layout(); });
+
+  // ===== 効果音（Web Audio・音声ファイル不要） =====
+  const SND_KEY = 'tp_sound';
+  let soundOn = localStorage.getItem(SND_KEY) !== 'off';
+  let audioCtx = null;
+
+  function ac() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  // 単音を鳴らす（freq: 周波数, dur: 長さ秒）
+  function tone(freq, dur, opt = {}) {
+    if (!soundOn) return;
+    try {
+      const ctx = ac();
+      const t0 = ctx.currentTime + (opt.delay || 0);
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = opt.type || 'sine';
+      osc.frequency.setValueAtTime(freq, t0);
+      if (opt.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq + opt.slide), t0 + dur);
+      const vol = opt.vol || 0.2;
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+      osc.connect(g).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.05);
+    } catch (e) { /* 音は失敗しても無視 */ }
+  }
+
+  const SFX = {
+    pick()  { tone(500, 0.06, { type: 'triangle', vol: 0.1 }); },
+    place() { tone(300, 0.09, { type: 'triangle', vol: 0.25, slide: -80 }); tone(520, 0.06, { vol: 0.12, delay: 0.02 }); },
+    clear(lines, comboCount) {
+      const base = 520 + Math.min(comboCount, 6) * 50;
+      const n = Math.min(lines + 1, 4);
+      for (let i = 0; i < n; i++) tone(base * Math.pow(1.26, i), 0.15, { vol: 0.2, delay: i * 0.06 });
+    },
+    goal()   { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.2, { vol: 0.22, delay: i * 0.1 })); },
+    unlock() { [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, 0.16, { vol: 0.2, delay: i * 0.08 })); },
+    over()   { [392, 311, 247, 175].forEach((f, i) => tone(f, 0.25, { type: 'triangle', vol: 0.15, delay: i * 0.16 })); },
+    timeup() { tone(880, 0.35, { vol: 0.2 }); tone(587, 0.5, { vol: 0.2, delay: 0.18 }); },
+    tick()   { tone(1050, 0.05, { type: 'square', vol: 0.06 }); },
+    tap()    { tone(600, 0.05, { type: 'triangle', vol: 0.1 }); },
+  };
+
+  const soundBtn = document.getElementById('sound-btn');
+  function updateSoundBtn() {
+    soundBtn.textContent = soundOn ? '🔊' : '🔇';
+    soundBtn.classList.toggle('muted', !soundOn);
+  }
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    localStorage.setItem(SND_KEY, soundOn ? 'on' : 'off');
+    updateSoundBtn();
+    if (soundOn) SFX.tap();
+  });
+  updateSoundBtn();
 
   // ===== ピース定義（テトリミノ中心＋補助ピース） =====
   // shape: [row, col] の配列 / g: グループ（tetro=4マス, small=1〜3マス, big=大型）
@@ -981,6 +1055,7 @@
     if (gameOver || item.used || drag) return;
     if (!canPlaceAnywhere(item.shape)) return; // 置けないピースは掴めない
     e.preventDefault();
+    SFX.pick();
 
     const shape = item.shape;
     const rows = Math.max(...shape.cells.map(c => c[0])) + 1;
@@ -1097,10 +1172,12 @@
       const comboBonus = (combo - 1) * 20;       // コンボボーナス
       gained += lineScore * (1 + (lines - 1) * 0.5) + comboBonus;
       gained = Math.round(gained);
+      SFX.clear(lines, combo);
       showCombo(lines, combo);
       animateClear(rows, cols);
     } else {
       combo = 0;
+      SFX.place();
       renderBoard();
     }
 
@@ -1175,11 +1252,12 @@
     const before = Object.keys(MODES).filter(isUnlocked);
     stats[mode].clears++;
     saveStats();
+    SFX.goal();
     showToast('🎉 クリア達成！');
     const after = Object.keys(MODES).filter(isUnlocked);
     const news = after.filter(k => !before.includes(k));
     unlockedMsgs = news.map(k => `${MODES[k].icon} ${MODES[k].name}モード解放！`);
-    unlockedMsgs.forEach((m, i) => setTimeout(() => showToast('🔓 ' + m), 1600 * (i + 1)));
+    unlockedMsgs.forEach((m, i) => setTimeout(() => { showToast('🔓 ' + m); SFX.unlock(); }, 1600 * (i + 1)));
   }
 
   // ===== タイマー（タイムアタック） =====
@@ -1213,6 +1291,7 @@
     if (left !== timeLeft) {
       timeLeft = left;
       updateTitle();
+      if (left <= 10 && left > 0) SFX.tick(); // 残り10秒カウントダウン
     }
     if (left <= 0) {
       stopTimer();
@@ -1248,6 +1327,7 @@
   function showGameOver(isTimeUp = false) {
     stopTimer();
     gameActive = false;
+    if (isTimeUp) SFX.timeup(); else SFX.over();
     const cfg = MODES[mode];
     document.getElementById('go-title').textContent = isTimeUp ? '⏱️ タイムアップ！' : 'ゲームオーバー';
     document.getElementById('go-mode').textContent = cfg.icon + ' ' + cfg.name + 'モード';
@@ -1270,6 +1350,7 @@
   }
 
   function startGame(k) {
+    SFX.tap();
     mode = k;
     menuEl.classList.add('hidden');
     overlayEl.classList.remove('show');
@@ -1368,13 +1449,14 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '1.4';
+const APP_VERSION = '1.5';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
   '1.2': ['タイムアタック（3分）・ハード・ベリーハードの新モード追加', 'クリア回数で新モードが解放されるように'],
   '1.3': ['📊 過去7日間の日別ベストスコアグラフを追加', 'モードアイコンを一新', 'モード解放条件を調整（3回／5回／10回）'],
   '1.4': ['ホーム・スコア記録ボタンもかわいいアイコン画像に', '画像をWebP化して軽量化'],
+  '1.5': ['🔊 効果音を追加（配置・ライン消去・クリア・カウントダウンなど）', '画面上部のスピーカーボタンでオン/オフ切替可能'],
 };
 
 // リロード後にリリースノートを表示
