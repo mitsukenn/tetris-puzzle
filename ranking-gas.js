@@ -17,6 +17,8 @@
  *   バージョン「新バージョン」→ デプロイ、とすればURLは変わりません。
  */
 
+// 記録を書き込むスプレッドシートのID（URLの /d/ と /edit の間の文字列）
+var SPREADSHEET_ID = '13iLlspN3PKqhZwkUmcXwGG-QPq_RFHWDJx4X7IYw7qQ';
 // 記録を書き込むシート名（無ければ自動で作られます）
 var SHEET_NAME = 'ranking';
 // 1モードあたり返す件数
@@ -25,7 +27,7 @@ var TOP_N = 20;
 var MAX_SCORE = 999999;
 
 function getSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) {
     sh = ss.insertSheet(SHEET_NAME);

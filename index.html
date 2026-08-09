@@ -1164,8 +1164,8 @@
 
   // ===== ランキング（スコア登録・ログイン不要） =====
   // オンライン共有ランキングのAPI（Google Apps ScriptのウェブアプリURL）。
-  // 空文字のままなら「この端末だけ」のランキングとして動作する。
-  const RANKING_API = '';
+  // 空文字にすると「この端末だけ」のランキングとして動作する。
+  const RANKING_API = 'https://script.google.com/macros/s/AKfycbydteWLmZmW48GksKOdtj0WF3gafADX99-H5f8gDKyx5VPY_tDZ_rKj-w9aXMw6JcUR/exec';
   const RANK_KEY = 'tp_ranking';
   const NAME_KEY = 'tp_last_name';
   const RANK_MAX = 20;
@@ -1933,7 +1933,7 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '1.8';
+const APP_VERSION = '1.9';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -1948,6 +1948,7 @@ const RELEASE_NOTES = {
     '🔍 ゲームオーバー後に最後の盤面を確認できるように',
     '🐛 列が消えて続けられるのにゲームオーバーになる不具合を修正',
   ],
+  '1.9': ['🌐 ランキングが全国のみんなと共通に！ 誰でもスコアを登録できます'],
 };
 
 // リロード後にリリースノートを表示
