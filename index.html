@@ -781,6 +781,24 @@
   .rank-score { font-size: 15px; font-weight: 700; color: #f286ac; flex-shrink: 0; }
   .rank-date { font-size: 9px; color: #b6c4d8; flex-shrink: 0; width: 38px; text-align: right; }
   .rank-empty { font-size: 13px; color: #96a8c8; padding: 26px 0; }
+  .rank-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #96a8c8;
+    padding: 34px 0;
+  }
+  .rank-spinner {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid rgba(142, 205, 240, 0.35);
+    border-top-color: #f286ac;
+    animation: rankSpin 0.8s linear infinite;
+  }
+  @keyframes rankSpin { to { transform: rotate(360deg); } }
   #rank-status { font-size: 10px; color: #96a8c8; margin-bottom: 8px; min-height: 13px; }
   #rank-close {
     font-size: 14px;
@@ -1359,19 +1377,32 @@
     }).join('');
   }
 
+  // 読み込み中の表示（結果が確定するまで「記録なし」を出さないため）
+  function renderRankLoading() {
+    rankStatusEl.textContent = '';
+    rankListEl.innerHTML = '<div class="rank-loading"><span class="rank-spinner"></span>読み込み中…</div>';
+  }
+
+  let rankLoadToken = 0;   // 素早くタブを切り替えたとき、古い結果で上書きしないための番号
+
   async function openRanking(m) {
     if (m) rankFilter = m;
     rankingEl.classList.remove('hidden');
     document.querySelectorAll('.chart-chip[data-m]').forEach(ch =>
       ch.classList.toggle('active', ch.dataset.m === rankFilter));
-    // まず端末内の記録をすぐ表示（オンラインは後から上書き）
-    renderRankList(localRankOf(rankFilter),
-      RANKING_API ? '読み込み中…' : 'この端末に保存された記録です');
-    if (!RANKING_API) return;
+
+    if (!RANKING_API) {
+      renderRankList(localRankOf(rankFilter), 'この端末に保存された記録です');
+      return;
+    }
+    renderRankLoading();
+    const token = ++rankLoadToken;
     try {
       const entries = await fetchOnlineRank(rankFilter);
+      if (token !== rankLoadToken) return;   // もっと新しい読み込みが始まっていたら捨てる
       renderRankList(entries, 'みんなのランキング');
     } catch (err) {
+      if (token !== rankLoadToken) return;
       renderRankList(localRankOf(rankFilter), '⚠️ 通信できないため、この端末の記録を表示中です');
     }
   }
@@ -2057,7 +2088,7 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '2.2';
+const APP_VERSION = '2.3';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -2076,6 +2107,7 @@ const RELEASE_NOTES = {
   '2.0': ['✨ タイトルロゴとサウンドボタンをオリジナル画像に一新'],
   '2.1': ['🏅 ランキングのメダル、コンボの炎、クリアのクラッカーもオリジナル画像に', 'モード切替タブにもモードのアイコンを表示'],
   '2.2': ['🌈 パズル画面をカラフルに！盤面に虹色フレーム、スコアもカード表示に', '背景にブロックがふわふわ浮かぶ演出を追加'],
+  '2.3': ['⏳ ランキングの読み込み中に「記録なし」と出てしまう表示を修正'],
 };
 
 // リロード後にリリースノートを表示
