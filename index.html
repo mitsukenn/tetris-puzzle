@@ -638,6 +638,29 @@
     gap: 4px;
   }
   .chart-chip[data-f="all"] { padding: 4px 12px; }
+  /* ランキングの期間（今月・今年） */
+  .period-tabs {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgba(122, 161, 209, 0.14);
+    margin-bottom: 10px;
+  }
+  .period-tab {
+    font-size: 13px;
+    font-weight: 700;
+    color: #96a8c8;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 5px 20px;
+    cursor: pointer;
+  }
+  .period-tab.active {
+    color: #fff;
+    background: linear-gradient(90deg, #f286ac, #f7a8c4);
+    box-shadow: 0 2px 8px rgba(242, 134, 172, 0.35);
+  }
   .chart-chip img {
     width: 20px;
     height: 20px;
@@ -965,6 +988,10 @@
     <div class="ranking-card">
       <h2><img src="icon-rank.webp" alt=""> ランキング</h2>
       <div class="stats-sub">みんなのベストスコア</div>
+      <div class="period-tabs" id="rank-period">
+        <button class="period-tab active" data-p="month">今月</button>
+        <button class="period-tab" data-p="year">今年</button>
+      </div>
       <div class="chart-chips" id="rank-chips">
         <button class="chart-chip active" data-m="normal"><img src="mode-normal.webp" alt="">通常</button>
         <button class="chart-chip" data-m="timeattack"><img src="mode-timeattack.webp" alt="">タイム</button>
@@ -1298,6 +1325,7 @@
   const RANK_MAX = 20;
 
   let rankFilter = 'normal';
+  let rankPeriod = 'month';  // 'month'（今月）| 'year'（今年）。区切りは日本時間
   let myEntryKey = null;   // 直前に登録した自分の行をハイライトする用
   let prevBest = 0;        // ゲーム開始時点のベスト（自己ベスト更新の判定用）
 
@@ -1321,6 +1349,20 @@
     const all = loadLocalRank();
     return (all[m] || []).slice().sort((a, b) => b.score - a.score).slice(0, RANK_MAX);
   }
+  // 日本時間の「年-月」（端末のタイムゾーンに関係なく、全員同じ区切りにする）
+  function jstYm(d) {
+    const t = new Date(new Date(d).getTime() + 9 * 3600 * 1000);
+    return t.getUTCFullYear() + '-' + String(t.getUTCMonth() + 1).padStart(2, '0');
+  }
+  function inPeriod(date, p) {
+    if (!date || isNaN(new Date(date))) return false;
+    const a = jstYm(date), b = jstYm(Date.now());
+    return p === 'year' ? a.slice(0, 4) === b.slice(0, 4) : a === b;
+  }
+  function periodLabel(p) {
+    const now = jstYm(Date.now());
+    return p === 'year' ? now.slice(0, 4) + '年' : Number(now.slice(5)) + '月';
+  }
   function addLocalRank(entry) {
     const all = loadLocalRank();
     if (!all[entry.mode]) all[entry.mode] = [];
@@ -1339,7 +1381,7 @@
   }
 
   async function fetchOnlineRank(m) {
-    const res = await fetch(RANKING_API + '?mode=' + encodeURIComponent(m), { cache: 'no-store' });
+    const res = await fetch(RANKING_API + '?mode=' + encodeURIComponent(m) + '&period=' + rankPeriod, { cache: 'no-store' });
     const data = await res.json();
     return Array.isArray(data) ? data : (data.entries || []);
   }
@@ -1391,8 +1433,13 @@
     document.querySelectorAll('.chart-chip[data-m]').forEach(ch =>
       ch.classList.toggle('active', ch.dataset.m === rankFilter));
 
+    document.querySelectorAll('.period-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.p === rankPeriod));
+    const label = periodLabel(rankPeriod);
+    const localList = () => localRankOf(rankFilter).filter(en => inPeriod(en.date, rankPeriod));
+
     if (!RANKING_API) {
-      renderRankList(localRankOf(rankFilter), 'この端末に保存された記録です');
+      renderRankList(localList(), label + '・この端末に保存された記録です');
       return;
     }
     renderRankLoading();
@@ -1400,10 +1447,10 @@
     try {
       const entries = await fetchOnlineRank(rankFilter);
       if (token !== rankLoadToken) return;   // もっと新しい読み込みが始まっていたら捨てる
-      renderRankList(entries, 'みんなのランキング');
+      renderRankList(entries, label + 'のランキング');
     } catch (err) {
       if (token !== rankLoadToken) return;
-      renderRankList(localRankOf(rankFilter), '⚠️ 通信できないため、この端末の記録を表示中です');
+      renderRankList(localList(), '⚠️ 通信できないため、この端末の記録を表示中です（' + label + '）');
     }
   }
 
@@ -1460,6 +1507,9 @@
   });
   document.querySelectorAll('.chart-chip[data-m]').forEach(ch => {
     ch.addEventListener('click', () => openRanking(ch.dataset.m));
+  });
+  document.querySelectorAll('.period-tab').forEach(t => {
+    t.addEventListener('click', () => { rankPeriod = t.dataset.p; openRanking(); });
   });
 
   // ===== ゲームオーバー後に最後の盤面を確認する =====

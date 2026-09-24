@@ -43,17 +43,31 @@ function json_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/** ランキングの取得： GET ?mode=normal */
+/** 日本時間の「年-月」（yyyy-MM） */
+function ymJst_(d) {
+  return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy-MM');
+}
+
+/** ランキングの取得： GET ?mode=normal&period=month
+ *  period … month（今月）/ year（今年）。どちらも日本時間で区切る。省略すると全期間（古い画面用） */
 function doGet(e) {
   try {
     var mode = (e && e.parameter && e.parameter.mode) || 'normal';
+    var period = (e && e.parameter && e.parameter.period) || '';
+    var nowYm = ymJst_(new Date());
     var sh = getSheet_();
     var last = sh.getLastRow();
     if (last < 2) return json_({ entries: [] });
 
     var values = sh.getRange(2, 1, last - 1, 4).getValues();
     var entries = values
-      .filter(function (row) { return String(row[3]) === mode; })
+      .filter(function (row) {
+        if (String(row[3]) !== mode) return false;
+        if (period !== 'month' && period !== 'year') return true;
+        if (!(row[0] instanceof Date)) return false;
+        var ym = ymJst_(row[0]);
+        return period === 'month' ? ym === nowYm : ym.slice(0, 4) === nowYm.slice(0, 4);
+      })
       .map(function (row) {
         return {
           date: row[0] instanceof Date ? row[0].toISOString() : String(row[0]),
