@@ -1395,6 +1395,12 @@
     });
   }
 
+  // プレイ回数の集計（AIゲーム実験室の全ゲーム共通）。失敗しても遊ぶのには関係ない
+  const PLAY_API = 'https://script.google.com/macros/s/AKfycbyNh85RNVYJM1_cn5vn6d4_lFm-3_9MeQZe1vMGU4xk-fHRvGbbGUIgkgI2QUXhYyySMw/exec';
+  function countPlay() {
+    try { fetch(PLAY_API, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ type: 'play', game: 'tetris' }) }).catch(() => {}); } catch (e) {}
+  }
+
   function renderRankList(list, statusText) {
     rankStatusEl.textContent = statusText || '';
     if (!list || !list.length) {
@@ -2033,6 +2039,7 @@
 
   function startGame(k) {
     SFX.tap();
+    countPlay();   // モードを選んで開始・もう一度＝1回遊ぶ
     mode = k;
     prevBest = stats[k].best;   // このゲームでの自己ベスト更新判定に使う
     menuEl.classList.add('hidden');
