@@ -852,6 +852,23 @@
   }
   #ranking-btn img { width: 24px; height: 24px; border-radius: 7px; }
   #ranking-btn:active { transform: scale(0.95); }
+  #feedback-link {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e8779f;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(242, 134, 172, 0.4);
+    border-radius: 999px;
+    padding: 8px 26px;
+    margin-top: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(122, 161, 209, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  #feedback-link:active { transform: scale(0.95); }
 
   /* --- 更新通知バナー --- */
   #update-banner {
@@ -1014,6 +1031,8 @@
     <button id="stats-btn"><img src="icon-stats.webp" alt=""> スコア記録</button>
     <button id="ranking-btn"><img src="icon-rank.webp" alt=""> ランキング</button>
     <button id="resume-btn" style="display:none">▶ ゲームにもどる</button>
+    <!-- 感想ページ（遊んでいる途中の盤面は保存していないので、新しいタブで開いて消えないようにする） -->
+    <a id="feedback-link" href="../ad-games/feedback.html?game=tetris" target="_blank" rel="noopener">💬 感想・改善案を送る</a>
   </div>
 
   <div id="stats" class="hidden">
@@ -2145,7 +2164,7 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '2.3';
+const APP_VERSION = '2.4';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -2165,6 +2184,7 @@ const RELEASE_NOTES = {
   '2.1': ['🏅 ランキングのメダル、コンボの炎、クリアのクラッカーもオリジナル画像に', 'モード切替タブにもモードのアイコンを表示'],
   '2.2': ['🌈 パズル画面をカラフルに！盤面に虹色フレーム、スコアもカード表示に', '背景にブロックがふわふわ浮かぶ演出を追加'],
   '2.3': ['⏳ ランキングの読み込み中に「記録なし」と出てしまう表示を修正'],
+  '2.4': ['💬 モード選択画面から感想・改善案を送れるように'],
 };
 
 // リロード後にリリースノートを表示
