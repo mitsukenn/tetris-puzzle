@@ -869,6 +869,16 @@
     text-decoration: none;
   }
   #feedback-link:active { transform: scale(0.95); }
+  #games-link {
+    font-size: 14px;
+    font-weight: 700;
+    color: #6f8fc4;
+    padding: 6px 16px;
+    margin-top: 2px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  #games-link:active { transform: scale(0.95); }
 
   /* --- 更新通知バナー --- */
   #update-banner {
@@ -1033,6 +1043,8 @@
     <button id="resume-btn" style="display:none">▶ ゲームにもどる</button>
     <!-- 感想ページ（遊んでいる途中の盤面は保存していないので、新しいタブで開いて消えないようにする） -->
     <a id="feedback-link" href="../ad-games/feedback.html?game=tetris" target="_blank" rel="noopener">💬 感想・改善案を送る</a>
+    <!-- AIゲーム実験室のトップ（ほかのゲーム一覧）へ戻る -->
+    <a id="games-link" href="../ad-games/">🎮 ほかのゲームを選ぶ</a>
   </div>
 
   <div id="stats" class="hidden">
@@ -2164,7 +2176,7 @@
 </script>
 <script>
 // --- バージョン管理・更新通知（PWA） ---
-const APP_VERSION = '2.4';
+const APP_VERSION = '2.5';
 const RELEASE_NOTES = {
   '1.0': ['初版リリース'],
   '1.1': ['パステルカラーの新デザイン', 'ホーム画面に追加できるアプリ（PWA）対応'],
@@ -2185,6 +2197,7 @@ const RELEASE_NOTES = {
   '2.2': ['🌈 パズル画面をカラフルに！盤面に虹色フレーム、スコアもカード表示に', '背景にブロックがふわふわ浮かぶ演出を追加'],
   '2.3': ['⏳ ランキングの読み込み中に「記録なし」と出てしまう表示を修正'],
   '2.4': ['💬 モード選択画面から感想・改善案を送れるように'],
+  '2.5': ['🎮 モード選択画面から、ほかのゲーム（AIゲーム実験室）へ移れるように'],
 };
 
 // リロード後にリリースノートを表示
